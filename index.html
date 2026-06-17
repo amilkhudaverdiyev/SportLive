@@ -1,5 +1,5 @@
 
-Qqef<!DOCTYPE html>
+Www<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -321,7 +321,7 @@ if (finishedContainer) {
 //document.getElementById('finished-container').innerHTML = window.matchesData.filter(m => m.status === 'FINISHED').map(m => `<div class="match-card">${m.homeTeam.name} ${m.score.fullTime.home}:${m.score.fullTime.away} ${m.awayTeam.name}</div>`).join('') || "Oyun yoxdur.";
         
         // 4. Proqnoz tabı bölməsi
-        document.getElementById('tab2-container').innerHTML = window.matchesData.slice(0, 20).map((m) => {
+        document.getElementById('tab2-container').innerHTML = window.matchesData.slice(0, 50).map((m) => {
             const saved = localStorage.getItem('s-' + currentUser + '-' + m.id);
             const isDisabled = saved ? 'disabled' : '';
             return `
