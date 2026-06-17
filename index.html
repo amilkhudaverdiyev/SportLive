@@ -1,5 +1,5 @@
 
-Eef<!DOCTYPE html>
+Qqef<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -357,6 +357,10 @@ if (finishedContainer) {
     }
 
     function triggerGoalAlert(match, score) {
+   
+           // SƏS ƏLAVƏSİ:
+    const audio = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
+    audio.play(); 
         const alertBox = document.createElement('div');
         alertBox.style.cssText = "position:fixed; top:20px; right:20px; background:#e74c3c; color:white; padding:20px; border-radius:8px; z-index:9999;";
         alertBox.innerHTML = `<strong>⚽ QOL!</strong><br>${match.homeTeam.name} ${score} ${match.awayTeam.name}`;
