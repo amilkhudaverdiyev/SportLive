@@ -1,5 +1,5 @@
 
-Fa<!DOCTYPE html>
+Fadf<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -208,23 +208,36 @@ const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`https://api.foot
     }
 
     function renderUI() {
-        // Canlı
-        const liveMatches = matchesData.filter(m => ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(m.status));
-        document.getElementById('live-container').innerHTML = liveMatches.length > 0 
-            ? liveMatches.map(m => `
+        // Canlı oyunlar
+        const liveContainer = document.getElementById('live-container');
+        const liveMatches = window.matchesData.filter(m => 
+            ['IN_PLAY', 'PAUSED', 'HALFTIME'].includes(m.status)
+        );
+
+        if (liveMatches.length > 0) {
+            liveContainer.innerHTML = liveMatches.map(m => `
                 <div class="match-card">
                     <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong>
-                    <div style="font-size: 1.5em; color: #e74c3c;">${m.score?.current?.home ?? 0} : ${m.score?.current?.away ?? 0}</div>
-                </div>`).join('') : "Hazırda canlı oyun yoxdur.";
+                    <div style="font-size: 1.5em; color: #e74c3c;">
+                        ${m.score.current.home ?? 0} : ${m.score.current.away ?? 0}
+                    </div>
+                </div>`).join('');
+        } else {
+            liveContainer.innerHTML = "Hazırda canlı oyun yoxdur.";
+        }
 
-        // Bitmiş
-        const finishedMatches = matchesData.filter(m => m.status === 'FINISHED');
-        document.getElementById('finished-container').innerHTML = finishedMatches.map(m => `
-            <div class="match-card">
-                ${m.homeTeam.name} ${m.score?.fullTime?.home ?? 0}:${m.score?.fullTime?.away ?? 0} ${m.awayTeam.name}
-                <br><small style="color:green">✅ Bitib</small>
-            </div>`).join('') || "Bitmiş oyun yoxdur.";
+        // Bitmiş oyunlar
+        const finishedContainer = document.getElementById('finished-container');
+        const finishedMatches = window.matchesData.filter(m => m.status === 'FINISHED');
+        
+        if (finishedMatches.length > 0) {
+            finishedContainer.innerHTML = finishedMatches.map(m => `
+                <div class="match-card">
+                    ${m.homeTeam.name} ${m.score.fullTime.home}:${m.score.fullTime.away} ${m.awayTeam.name}
+                </div>`).join('');
+        }
     }
+    
 
     // 4. Digər funksiyalar (Sizin köhnə koddan qalanlar)
 
