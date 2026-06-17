@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <title>İdman Portalı</title>
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+
+    <style>
+        :root { --primary: #2c3e50; --accent: #3498db; --bg: #f4f7f6; }
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background: var(--bg); padding: 20px; color: #333; }
+        #login-panel { max-width: 350px; margin: 80px auto; padding: 30px; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .login-input { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; }
+        .main-menu { display: flex; gap: 10px; margin-bottom: 20px; background: white; padding: 10px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .main-btn { padding: 10px 15px; background: transparent; border: none; cursor: pointer; border-radius: 5px; font-weight: 600; transition: 0.3s; }
+        .main-btn.active { background: var(--primary); color: white; }
+        .tab-content { display: none; animation: fadeIn 0.5s; }
+        .tab-content.active { display: block; }
+        .sub-sections { display: flex; gap: 10px; margin-bottom: 20px; }
+        .sub-btn { flex: 1; padding: 8px; background: white; border: 1px solid #ddd; text-align: center; cursor: pointer; border-radius: 6px; }
+        .sub-btn.active { background: var(--accent); color: white; border-color: var(--accent); }
+        .panel { display: none; }
+        .panel.active { display: block; }
+        .match-card { background: white; padding: 18px; margin-bottom: 12px; border-radius: 8px; border-left: 4px solid var(--accent); box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        input { padding: 8px; width: 60px; border: 1px solid #ccc; border-radius: 4px; }
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 15px; border-bottom: 1px solid #eee; text-align: left; }
+        th { background: #f8f9fa; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .msg-4 { border-left: 5px solid #27ae60 !important; background: #e8f8f0 !important; }
+        .msg-2 { border-left: 5px solid #f1c40f !important; background: #fef9e7 !important; }
+        .msg-1 { border-left: 5px solid #e67e22 !important; background: #fdedec !important; }
+        .msg-0 { border-left: 5px solid #e74c3c !important; background: #fdedec !important; }
+        .msg-loading { border-left: 5px solid #3498db !important; background: #ebf5fb !important; }
+    </style>
+</head>
+<body>
+
+<div id="login-panel">
+    <div id="login-form">
+        <h3 style="text-align:center">Sistemə Giriş</h3>
+        <input type="text" id="username" class="login-input" placeholder="İstifadəçi adı">
+        <input type="password" id="password" class="login-input" placeholder="Parol">
+        <button onclick="initialLogin()" class="main-btn active" style="width:100%">Daxil ol</button>
+    </div>
+    <div id="reset-form" style="display:none;">
+        <h3>Parolu yenilə</h3>
+        <input type="password" id="new-password" class="login-input" placeholder="Yeni parol">
+        <button onclick="updatePassword()" class="main-btn active" style="background:#27ae60; width:100%">Yadda saxla</button>
+    </div>
+</div>
+
+<div id="main-system" style="display:none;">
+    <div class="main-menu">
+        <button class="main-btn active" onclick="showMain('tab1', this)">Livescore</button>
+        <button class="main-btn" onclick="showMain('tab2', this)">Proqnozlar</button>
+        <button class="main-btn" onclick="showMain('tab3', this)">Cədvəl</button>
+        <button class="main-btn" onclick="showMain('tab4', this)">Bildirişlər</button>
+        <button onclick="hardReset()" style="background:#c0392b; color:white; padding:10px; border:none; border-radius:5px; cursor:pointer;">
+            Sistemi Tam Sıfırla
+        </button>
+    </div>
+
+    <div id="tab1" class="tab-content active">
+        <div class="sub-sections">
+            <div class="sub-btn active" onclick="showSub('live-panel', this)">Canlı</div>
+            <div class="sub-btn" onclick="showSub('finished-panel', this)">Bitmiş</div>
+            <div class="sub-btn" onclick="showSub('schedule-panel', this)">Tarixlər</div>
+        </div>
+        <div id="live-panel" class="panel active"><h3>🔴 Canlı</h3><div id="live-container">Yüklənir...</div></div>
+        <div id="finished-panel" class="panel"><h3>✅ Bitmiş</h3><div id="finished-container">Yüklənir...</div></div>
+        <div id="schedule-panel" class="panel"><h3>📅 Proqram</h3><div id="schedule-container">Yüklənir...</div></div>
+    </div>
+
+    <div id="tab2" class="tab-content">
+        <h3>Proqnozlar</h3>
+        <div id="tab2-container">Yüklənir...</div>
+    </div>
+
+    <div id="tab3" class="tab-content">
+        <h3>Turnir Cədvəli</h3>
+        <table>
+            <thead><tr><th>Yer</th><th>İstifadəçi</th><th>Xal</th></tr></thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+
+    <div id="tab4" class="tab-content">
+        <h3>Bildirişləriniz</h3>
+        <div id="notification-container"></div>
+    </div>
+</div>
+
+<script>
+    let currentUser = "";
+    let matchesData = [];
+
+    function initialLogin() {
+        const user = document.getElementById('username').value.trim();
+        const pass = document.getElementById('password').value;
+        if (!user) { alert("İstifadəçi adını daxil edin!"); return; }
+        
+        if (pass === "1234") { 
+            currentUser = user; 
+            document.getElementById('login-form').style.display = 'none'; 
+            document.getElementById('reset-form').style.display = 'block'; 
+        } else { 
+            alert("Yanlış parol! İlkin parol 1234-dür."); 
+        }
+    }
+
+    function updatePassword() {
+        const newPass = document.getElementById('new-password').value;
+        if (newPass.length >= 4) {
+            localStorage.setItem('pass_' + currentUser, newPass);
+            document.getElementById('login-panel').style.display = 'none';
+            document.getElementById('main-system').style.display = 'block';
+            
+            // Giriş uğurlu olandan sonra məlumatları çəkirik
+            fetchMatches();
+        } else { 
+            alert("Parol ən az 4 simvol olmalıdır!"); 
+        }
+    }
+
+window.fetchMatches = async function() {
+    if (!currentUser) {
+        console.log("İstifadəçi daxil olmayıb, sorğu ləğv edildi.");
+        return; 
+    }
+    
+    console.log("Məlumatlar gətirilir...");
+    const API_KEY = '100dddf0da034503890c0624dc38776d';
+    
+    // Heç bir əlavə zaman damğası (timestamp) olmadan, ən təmiz proxy URL strukturu:
+    //const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.football-data.org/v4/competitions/WC/matches');
+const timestamp = new Date().getTime();
+const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`https://api.football-data.org/v4/competitions/WC/matches?t=${timestamp}`);
+
+    try {
+        const response = await fetch(proxyUrl, { 
+            headers: { 'X-Auth-Token': API_KEY } 
+        });
+        
+        if (!response.ok) throw new Error("API xətası: " + response.status);
+
+        const data = await response.json();
+        window.matchesData = data.matches || [];
+        console.log("Yüklənən matç sayı:", window.matchesData.length);
+
+
+
+        // 1. Tarixlər bölməsi
+        const scheduledMatches = window.matchesData.filter(m => {
+            const status = m.status ? m.status.toUpperCase() : '';
+            return status !== 'FINISHED' && status !== 'IN_PLAY' && status !== 'PAUSED' && status !== 'HALFTIME';
+        });
+        document.getElementById('schedule-container').innerHTML = scheduledMatches.map(m => `
+            <div class="match-card">
+                <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong><br>
+                <small style="color:#666">📅 ${new Date(m.utcDate).toLocaleDateString()} ⏰ ${new Date(m.utcDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
+            </div>`).join('') || "Planlaşdırılan oyun yoxdur.";
+
+      // 2. Canlı oyunlar bölməsi (Tamamilə yerli brauzer saatına uyğun filtrləmə)
+/*const indikiVaxt = new Date(); // Brauzerin tam olaraq hazırkı yerli saatı və tarixi
+
+const liveMatches = window.matchesData.filter(m => {
+    const status = m.status ? m.status.toUpperCase() : '';
+    const oyunVaxti = new Date(m.utcDate); // API-dən gələn vaxtı yerli saata çeviririk
+
+    // Şərt 1: API oyunu birbaşa canlı statusda göstərirsə
+    const isLiveStatus = status === 'IN_PLAY' || status === 'PAUSED' || status === 'HALFTIME' || status.includes('LIVE');
+    
+    // Şərt 2: Oyunun başlama saatı keçibsə (və ya çatibsə) və oyun hələ bitməyibsə
+    // Bu, UTC vaxt fərqi yaransa belə oyunu canlı panelinə salır
+    const oyunBaslayib = (oyunVaxti <= indikiVaxt) && (status !== 'FINISHED');
+
+    return isLiveStatus || oyunBaslayib;
+});
+
+const flagStyle = `width: 24px; height: auto; vertical-align: middle; margin: 0 8px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);`;
+
+document.getElementById('live-container').innerHTML = liveMatches.map(m => {
+    const homeScore = (m.score && m.score.current && m.score.current.home !== null) ? m.score.current.home : 
+                      ((m.score && m.score.fullTime && m.score.fullTime.home !== null) ? m.score.fullTime.home : 0);
+                      
+    const awayScore = (m.score && m.score.current && m.score.current.away !== null) ? m.score.current.away : 
+                      ((m.score && m.score.fullTime && m.score.fullTime.away !== null) ? m.score.fullTime.away : 0);
+
+    // Oyunun yerli saatla başlama vaxtını formatlayırıq (məsələn: 21:00)
+    const yerliSaat = new Date(m.utcDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+
+    return `
+    <div class="match-card" style="border-left: 4px solid #e74c3c; background: #fff5f5;">
+        <div style="display: flex; align-items: center; margin-bottom: 8px;">
+            <img src="${m.homeTeam.crest || ''}" style="${flagStyle}" onerror="this.style.display='none'">
+            <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong>
+            <img src="${m.awayTeam.crest || ''}" style="${flagStyle}" onerror="this.style.display='none'">
+        </div>
+        <div style="font-size: 1.6em; font-weight: bold; color: #e74c3c; margin: 5px 0; padding-left: 40px;">
+            ${homeScore} : ${awayScore}
+        </div>
+        <small style="padding-left: 40px; color: #e74c3c; font-weight: bold;">
+            🔴 CANLI (Başlama saatı: ${yerliSaat})
+        </small>
+    </div>`;
+}).join('') || `<p style="color:gray; padding:10px;">Hazırkı saata uyğun canlı oynanılan oyun tapılmadı.</p>`;
+      */ // 3. Bitmiş oyunlar bölməsi
+     /* document.getElementById('live-container').innerHTML = matchesData.filter(m => 
+    m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'HALFTIME'
+).map(m => {
+    // Cari hesabı almaq üçün: birinci 'current' sahəsini yoxlayırıq, 
+    // yoxdursa 'fullTime' sahəsinə baxırıq.
+    const homeScore = (m.score.current && m.score.current.home !== null) ? m.score.current.home : (m.score.fullTime.home ?? 0);
+    const awayScore = (m.score.current && m.score.current.away !== null) ? m.score.current.away : (m.score.fullTime.away ?? 0);
+    
+    return `
+    <div class="match-card">
+        <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong><br>
+        <div style="font-size: 1.5em; font-weight: bold; color: #e74c3c; margin: 10px 0;">
+            ${homeScore} : ${awayScore}
+        </div>
+        <small>Status: ${m.status}</small>
+    </div>`;
+}).join('') || "Hazırda canlı oyun yoxdur.";
+*/
+        // 1. Canlı oyunları tapmaq üçün daha geniş şərt
+const liveMatches = window.matchesData.filter(m => {
+    const status = (m.status || '').toUpperCase();
+    const isLiveStatus = ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(status);
+    
+    // Əlavə təhlükəsizlik: Oyun artıq başlayıbsa, lakin status hələ 'TIMED' və ya 'SCHEDULED'dirsə
+    // bu şərt oyunu canlı siyahısına salacaq.
+    const isStarted = (new Date(m.utcDate) <= new Date()) && (status !== 'FINISHED' && status !== 'CANCELLED');
+    
+    return isLiveStatus || isStarted;
+});
+
+// 2. Render etmə
+document.getElementById('live-container').innerHTML = liveMatches.length > 0 
+    ? liveMatches.map(m => {
+        // Hesabı daha etibarlı yollarla alırıq
+        const score = m.score?.current || m.score?.fullTime || { home: 0, away: 0 };
+        return `
+        <div class="match-card" style="border-left: 4px solid #e74c3c;">
+            <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong><br>
+            <div style="font-size: 1.5em; font-weight: bold; color: #e74c3c; margin: 10px 0;">
+                ${score.home ?? 0} : ${score.away ?? 0}
+            </div>
+            <small>Status: ${m.status}</small>
+        </div>`;
+    }).join('') 
+    : "Hazırda canlı oyun yoxdur (və ya API-dən məlumat gecikir).";
+
+        
+       const finishedMatches = window.matchesData.filter(m => {
+            const status = m.status ? m.status.toUpperCase() : '';
+            return status === 'FINISHED';
+        });
+        document.getElementById('finished-container').innerHTML = finishedMatches.map(m => {
+    // KONSOLA YAZDIRAQ
+    console.log("Matç datası:", m); 
+    
+    // Əgər score null-dursa, bu konsolda görsənəcək
+    const h = m.score?.fullTime?.home ?? 0;
+    const a = m.score?.fullTime?.away ?? 0;
+    
+    return `<div class="match-card">
+        <strong>${m.homeTeam?.name || "Naməlum"} ${h}:${a} ${m.awayTeam?.name || "Naməlum"}</strong>
+        <br><small style="color:green">✅ Bitib</small>
+    </div>`;
+}).join('') || "Bitmiş oyun yoxdur.";
+
+        // Bitmiş oyunlar bölməsi - DÜZƏLİŞ
+/*const finishedMatches = window.matchesData.filter(m => {
+    const status = (m.status || '').toUpperCase();
+    return status === 'FINISHED';
+});
+
+const finishedContainer = document.getElementById('finished-container');
+if (finishedContainer) {
+    finishedContainer.innerHTML = finishedMatches.length > 0 
+        ? finishedMatches.map(m => `
+            <div class="match-card">
+                <strong>${m.homeTeam?.name || 'Ev sahibi'}</strong> 
+                ${m.score?.fullTime?.home ?? 0}:${m.score?.fullTime?.away ?? 0} 
+                <strong>${m.awayTeam?.name || 'Qonaq'}</strong>
+                <br><small style="color:green">✅ Bitib</small>
+            </div>`).join('') 
+        : "<p style='padding:10px;'>Bitmiş oyun tapılmadı.</p>";
+} */
+//document.getElementById('finished-container').innerHTML = window.matchesData.filter(m => m.status === 'FINISHED').map(m => `<div class="match-card">${m.homeTeam.name} ${m.score.fullTime.home}:${m.score.fullTime.away} ${m.awayTeam.name}</div>`).join('') || "Oyun yoxdur.";
+        
+        // 4. Proqnoz tabı bölməsi
+        document.getElementById('tab2-container').innerHTML = window.matchesData.slice(0, 20).map((m) => {
+            const saved = localStorage.getItem('s-' + currentUser + '-' + m.id);
+            const isDisabled = saved ? 'disabled' : '';
+            return `
+            <div class="match-card">${m.homeTeam.name} vs ${m.awayTeam.name} <br>
+                <input type="number" id="h-${m.id}" value="${saved ? saved.split(' - ')[0] : ''}" ${isDisabled}>
+                <input type="number" id="a-${m.id}" value="${saved ? saved.split(' - ')[1] : ''}" ${isDisabled}>
+                <button onclick="saveScore('${m.id}')" class="main-btn" style="background:${saved ? '#ccc':'var(--accent)'}; color:white" ${isDisabled}>
+                    ${saved ? 'Yadda saxlanıldı' : 'Yadda saxla'}
+                </button>
+            </div>`;
+        }).join('');
+        
+        updatePointsTable(); 
+        updateNotifications();
+        checkAndRefreshStatus();
+
+    } catch (e) {
+        console.error("Xəta baş verdi:", e);
+    }
+};
+
+    function saveScore(matchId) {
+        const m = window.matchesData.find(match => match.id == matchId);
+        if (!m) { alert("Matç tapılmadı."); return; }
+
+        const hInput = document.getElementById(`h-${matchId}`);
+        const aInput = document.getElementById(`a-${matchId}`);
+        const h = parseInt(hInput.value);
+        const a = parseInt(aInput.value);
+        
+        if (!isNaN(h) && !isNaN(a)) {
+            let pts = parseInt(localStorage.getItem('pts_' + currentUser) || 0);
+            let msgText = "";
+            const matchName = `${m.homeTeam.name} - ${m.awayTeam.name}`;
+            const status = m.status ? m.status.toUpperCase() : '';
+
+            if (status === 'FINISHED') {
+                const realH = m.score.fullTime.home;
+                const realA = m.score.fullTime.away;
+                
+                if (h === realH && a === realA) { pts += 4; msgText = `${matchName} (${realH}:${realA}) - Dəqiq hesab! 4 xal.`; } 
+                else if ((realH !== realA) && (h !== a) && ((h - a) === (realH - realA))) { pts += 2; msgText = `${matchName} (${realH}:${realA}) - Qol fərqi düzdür! 2 xal.`; } 
+                else if (realH === realA && h === a) { pts += 1; msgText = `${matchName} (${realH}:${realA}) - Bərabərlik düzdür! 1 xal.`; } 
+                else if ((realH > realA && h > a) || (realA > realH && a > h)) { pts += 1; msgText = `${matchName} (${realH}:${realA}) - Qalib düzdür! 1 xal.`; } 
+                else { msgText = `${matchName} (${realH}:${realA}) - Proqnozunuz (${h}:${a}) düz çıxmadı.`; }
+                localStorage.setItem('pts_' + currentUser, pts);
+            } else {
+                msgText = `${matchName}: Proqnozunuz (${h}:${a}) qeydə alındı, oyunun bitməsi gözlənilir.`;
+            }
+
+            localStorage.setItem('s-' + currentUser + '-' + matchId, `${h} - ${a}`);
+            localStorage.setItem('msg_' + currentUser + '_' + matchId, JSON.stringify({ text: msgText, time: Date.now() }));
+            
+            fetchMatches(); 
+        } else {
+            alert("Zəhmət olmasa xanaları doldurun!");
+        }
+    }
+
+    function updateNotifications() {
+    let container = document.getElementById('notification-container');
+    if (!container) return;
+    
+    let messages = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key.startsWith('msg_' + currentUser + '_')) {
+            try { 
+                messages.push(JSON.parse(localStorage.getItem(key))); 
+            } catch (e) {}
+        }
+    }
+    
+    // Ən son bildiriş yuxarıda olsun
+    messages.sort((a, b) => b.time - a.time);
+    
+    container.innerHTML = messages.map(msgData => {
+        let dateStr = new Date(msgData.time).toLocaleString('az-AZ');
+        let text = msgData.text;
+        
+        // Default (ilkin) olaraq mavi rəng təyin edirik
+        let colorClass = "msg-loading"; 
+        
+        // Şərtləri dəqiq mətndəki açar sözlərə görə yoxlayırıq
+        if (text.includes("4 xal")) {
+            colorClass = "msg-4"; // Yaşıl
+        } else if (text.includes("2 xal")) {
+            colorClass = "msg-2"; // Sarı
+        } else if (text.includes("1 xal")) {
+            colorClass = "msg-1"; // Narıncı
+        } else if (text.includes("çıxmadı") || text.includes("səhv")) {
+            colorClass = "msg-0"; // Qırmızı
+        } else if (text.includes("gözlənilir")) {
+            colorClass = "msg-loading"; // Mavi
+        }
+        
+        return `<div class="match-card ${colorClass}"><small style="color:#777">${dateStr}</small><br>${text}</div>`;
+    }).join('') || "<p style='color:gray; padding:10px;'>Hələlik bildiriş yoxdur.</p>";
+}
+
+    function updatePointsTable() {
+        let users = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            let key = localStorage.key(i);
+            if (key.startsWith('pts_')) users.push({ name: key.replace('pts_', ''), pts: parseInt(localStorage.getItem(key)) });
+        }
+        users.sort((a, b) => b.pts - a.pts);
+        document.getElementById('table-body').innerHTML = users.map((u, i) => `<tr><td>${i+1}</td><td>${u.name}</td><td>${u.pts}</td></tr>`).join('');
+    }
+
+    function checkAndRefreshStatus() {
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        if (key.startsWith('msg_' + currentUser + '_')) {
+            let matchId = key.split('_')[2]; 
+            let data = JSON.parse(localStorage.getItem(key));
+
+            if (data.text.includes("gözlənilir")) {
+                let match = window.matchesData.find(m => m.id == matchId);
+                // m.status yox, match.status olmalıdır
+                if (match && match.status && match.status.toUpperCase() === 'FINISHED') {
+                    localStorage.removeItem(key);
+                    calculateAndNotify(match, matchId);
+                }
+            }
+        }
+    }
+}
+
+    function calculateAndNotify(m, matchId) {
+        const saved = localStorage.getItem('s-' + currentUser + '-' + matchId);
+        if (!saved) return;
+        const [h, a] = saved.split(' - ').map(Number);
+        const realH = m.score.fullTime.home;
+        const realA = m.score.fullTime.away;
+        let pts = parseInt(localStorage.getItem('pts_' + currentUser) || 0);
+        let msgText = "";
+        const matchName = `${m.homeTeam.name} - ${m.awayTeam.name}`;
+
+        if (h === realH && a === realA) { pts += 4; msgText = `${matchName} (${realH}:${realA}) - Dəqiq hesab! 4 xal.`; }
+        else { msgText = `${matchName} (${realH}:${realA}) - Proqnozunuz düzgün çıxmadı.`; }
+
+        localStorage.setItem('pts_' + currentUser, pts);
+        localStorage.setItem('msg_' + currentUser + '_' + matchId, JSON.stringify({ text: msgText, time: Date.now() }));
+        updatePointsTable();
+        updateNotifications();
+    }
+
+    function showMain(id, btn) {
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.main-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function showSub(id, btn) {
+        document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.sub-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function hardReset() {
+        localStorage.clear();
+        alert("Sistem tamamilə təmizləndi! Səhifə yenilənir.");
+        window.location.reload();
+    }
+    // Səhifə açıq qaldığı müddətdə hər 60 saniyədən bir datanı yeniləyir
+// Bu funksiya parolu sıfırlamır və istifadəçini sistemdən atmır
+setInterval(function() {
+    if (currentUser) {
+        console.log("Arxa fonda canlı məlumatlar avtomatik yenilənir...");
+        fetchMatches(); // Yalnız matçları və dəqiqələri yenidən çəkir
+    }
+}, 30000); // 60000 milli saniyə = 1 dəqiqə
+</script>
+</body>
+</html>
