@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+Aa<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -123,8 +123,76 @@
             alert("Parol ən az 4 simvol olmalıdır!"); 
         }
     }
+let currentUser = "";
+let matchesData = [];
+let lastScoreState = {}; // Real-time qol yoxlanışı üçün
 
+// Əsas yeniləmə funksiyası
 window.fetchMatches = async function() {
+    if (!currentUser) return;
+    
+    const API_KEY = '100dddf0da034503890c0624dc38776d';
+    const targetUrl = `https://api.football-data.org/v4/competitions/WC/matches?t=${new Date().getTime()}`;
+    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+
+    try {
+        const response = await fetch(proxyUrl);
+        const dataWrapper = await response.json();
+        const data = JSON.parse(dataWrapper.contents);
+        
+        if (data.matches) {
+            checkGoals(data.matches); // QOL YOXLAYICI
+            window.matchesData = data.matches;
+            renderUI(); // EKRANI YENİLƏ
+        }
+    } catch (e) {
+        console.error("Yeniləmə xətası:", e);
+    }
+};
+
+// 1. QOL YOXLAYICI (Real-time)
+function checkGoals(matches) {
+    matches.forEach(m => {
+        if (['IN_PLAY', 'PAUSED', 'HALFTIME'].includes(m.status)) {
+            const currentScore = `${m.score.current.home}-${m.score.current.away}`;
+            if (lastScoreState[m.id] && lastScoreState[m.id] !== currentScore) {
+                triggerGoalAlert(m, currentScore);
+            }
+            lastScoreState[m.id] = currentScore;
+        }
+    });
+}
+
+function triggerGoalAlert(match, score) {
+    const alertBox = document.createElement('div');
+    alertBox.style.cssText = "position:fixed; top:20px; right:20px; background:#e74c3c; color:white; padding:20px; border-radius:8px; z-index:9999;";
+    alertBox.innerHTML = `<strong>⚽ QOL!</strong><br>${match.homeTeam.name} ${score} ${match.awayTeam.name}`;
+    document.body.appendChild(alertBox);
+    setTimeout(() => alertBox.remove(), 5000);
+}
+
+// 2. RENDER FUNKSİYASI (Ekrana çıxaran)
+function renderUI() {
+    // Canlı
+    const liveMatches = window.matchesData.filter(m => ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(m.status));
+    document.getElementById('live-container').innerHTML = liveMatches.length > 0 
+        ? liveMatches.map(m => `
+            <div class="match-card">
+                <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong>
+                <div style="font-size: 1.5em; color: #e74c3c;">${m.score.current.home} : ${m.score.current.away}</div>
+            </div>`).join('') : "Canlı oyun yoxdur.";
+
+    // Bitmiş
+    const finishedMatches = window.matchesData.filter(m => m.status === 'FINISHED');
+    document.getElementById('finished-container').innerHTML = finishedMatches.map(m => `
+        <div class="match-card">
+            ${m.homeTeam.name} ${m.score.fullTime.home}:${m.score.fullTime.away} ${m.awayTeam.name}
+        </div>`).join('') || "Bitmiş oyun yoxdur.";
+}
+
+// Digər funksiyalar (initialLogin, updatePassword, vb.) olduğu kimi qalır...
+
+/*window.fetchMatches = async function() {
     if (!currentUser) {
         console.log("İstifadəçi daxil olmayıb, sorğu ləğv edildi.");
         return; 
@@ -314,7 +382,7 @@ if (finishedContainer) {
         console.error("Xəta baş verdi:", e);
     }
 };
-
+*/
     function saveScore(matchId) {
         const m = window.matchesData.find(match => match.id == matchId);
         if (!m) { alert("Matç tapılmadı."); return; }
