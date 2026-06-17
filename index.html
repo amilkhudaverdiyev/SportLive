@@ -1,4 +1,5 @@
-Aa<!DOCTYPE html>
+
+FfgAa<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -91,23 +92,22 @@ Aa<!DOCTYPE html>
         <div id="notification-container"></div>
     </div>
 </div>
-
 <script>
+    // 1. Dəyişənlər (Yalnız bir dəfə bəyan olunur)
     let currentUser = "";
     let matchesData = [];
+    let lastScoreState = {};
 
+    // 2. Giriş funksiyaları
     function initialLogin() {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value;
         if (!user) { alert("İstifadəçi adını daxil edin!"); return; }
-        
         if (pass === "1234") { 
             currentUser = user; 
             document.getElementById('login-form').style.display = 'none'; 
             document.getElementById('reset-form').style.display = 'block'; 
-        } else { 
-            alert("Yanlış parol! İlkin parol 1234-dür."); 
-        }
+        } else { alert("Yanlış parol!"); }
     }
 
     function updatePassword() {
@@ -116,273 +116,72 @@ Aa<!DOCTYPE html>
             localStorage.setItem('pass_' + currentUser, newPass);
             document.getElementById('login-panel').style.display = 'none';
             document.getElementById('main-system').style.display = 'block';
-            
-            // Giriş uğurlu olandan sonra məlumatları çəkirik
             fetchMatches();
-        } else { 
-            alert("Parol ən az 4 simvol olmalıdır!"); 
-        }
+        } else { alert("Parol ən az 4 simvol olmalıdır!"); }
     }
-let currentUser = "";
-let matchesData = [];
-let lastScoreState = {}; // Real-time qol yoxlanışı üçün
 
-// Əsas yeniləmə funksiyası
-window.fetchMatches = async function() {
-    if (!currentUser) return;
-    
-    const API_KEY = '100dddf0da034503890c0624dc38776d';
-    const targetUrl = `https://api.football-data.org/v4/competitions/WC/matches?t=${new Date().getTime()}`;
-    const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+    // 3. API və Render funksiyaları
+    window.fetchMatches = async function() {
+        if (!currentUser) return;
+        const API_KEY = '100dddf0da034503890c0624dc38776d';
+        const targetUrl = `https://api.football-data.org/v4/competitions/WC/matches?t=${new Date().getTime()}`;
+        const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
 
-    try {
-        const response = await fetch(proxyUrl);
-        const dataWrapper = await response.json();
-        const data = JSON.parse(dataWrapper.contents);
-        
-        if (data.matches) {
-            checkGoals(data.matches); // QOL YOXLAYICI
-            window.matchesData = data.matches;
-            renderUI(); // EKRANI YENİLƏ
-        }
-    } catch (e) {
-        console.error("Yeniləmə xətası:", e);
-    }
-};
-
-// 1. QOL YOXLAYICI (Real-time)
-function checkGoals(matches) {
-    matches.forEach(m => {
-        if (['IN_PLAY', 'PAUSED', 'HALFTIME'].includes(m.status)) {
-            const currentScore = `${m.score.current.home}-${m.score.current.away}`;
-            if (lastScoreState[m.id] && lastScoreState[m.id] !== currentScore) {
-                triggerGoalAlert(m, currentScore);
+        try {
+            const response = await fetch(proxyUrl);
+            const dataWrapper = await response.json();
+            const data = JSON.parse(dataWrapper.contents);
+            
+            if (data.matches) {
+                matchesData = data.matches;
+                checkGoals(matchesData);
+                renderUI();
+                updateNotifications();
             }
-            lastScoreState[m.id] = currentScore;
-        }
-    });
-}
+        } catch (e) { console.error("Yeniləmə xətası:", e); }
+    };
 
-function triggerGoalAlert(match, score) {
-    const alertBox = document.createElement('div');
-    alertBox.style.cssText = "position:fixed; top:20px; right:20px; background:#e74c3c; color:white; padding:20px; border-radius:8px; z-index:9999;";
-    alertBox.innerHTML = `<strong>⚽ QOL!</strong><br>${match.homeTeam.name} ${score} ${match.awayTeam.name}`;
-    document.body.appendChild(alertBox);
-    setTimeout(() => alertBox.remove(), 5000);
-}
-
-// 2. RENDER FUNKSİYASI (Ekrana çıxaran)
-function renderUI() {
-    // Canlı
-    const liveMatches = window.matchesData.filter(m => ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(m.status));
-    document.getElementById('live-container').innerHTML = liveMatches.length > 0 
-        ? liveMatches.map(m => `
-            <div class="match-card">
-                <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong>
-                <div style="font-size: 1.5em; color: #e74c3c;">${m.score.current.home} : ${m.score.current.away}</div>
-            </div>`).join('') : "Canlı oyun yoxdur.";
-
-    // Bitmiş
-    const finishedMatches = window.matchesData.filter(m => m.status === 'FINISHED');
-    document.getElementById('finished-container').innerHTML = finishedMatches.map(m => `
-        <div class="match-card">
-            ${m.homeTeam.name} ${m.score.fullTime.home}:${m.score.fullTime.away} ${m.awayTeam.name}
-        </div>`).join('') || "Bitmiş oyun yoxdur.";
-}
-
-// Digər funksiyalar (initialLogin, updatePassword, vb.) olduğu kimi qalır...
-
-/*window.fetchMatches = async function() {
-    if (!currentUser) {
-        console.log("İstifadəçi daxil olmayıb, sorğu ləğv edildi.");
-        return; 
+    function checkGoals(matches) {
+        matches.forEach(m => {
+            if (['IN_PLAY', 'PAUSED', 'HALFTIME'].includes(m.status)) {
+                const currentScore = `${m.score?.current?.home}-${m.score?.current?.away}`;
+                if (lastScoreState[m.id] && lastScoreState[m.id] !== currentScore) {
+                    triggerGoalAlert(m, currentScore);
+                }
+                lastScoreState[m.id] = currentScore;
+            }
+        });
     }
-    
-    console.log("Məlumatlar gətirilir...");
-    const API_KEY = '100dddf0da034503890c0624dc38776d';
-    
-    // Heç bir əlavə zaman damğası (timestamp) olmadan, ən təmiz proxy URL strukturu:
-    //const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent('https://api.football-data.org/v4/competitions/WC/matches');
-const timestamp = new Date().getTime();
-const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`https://api.football-data.org/v4/competitions/WC/matches?t=${timestamp}`);
 
-    try {
-        const response = await fetch(proxyUrl, { 
-            headers: { 'X-Auth-Token': API_KEY } 
-        });
-        
-        if (!response.ok) throw new Error("API xətası: " + response.status);
+    function triggerGoalAlert(match, score) {
+        const alertBox = document.createElement('div');
+        alertBox.style.cssText = "position:fixed; top:20px; right:20px; background:#e74c3c; color:white; padding:20px; border-radius:8px; z-index:9999;";
+        alertBox.innerHTML = `<strong>⚽ QOL!</strong><br>${match.homeTeam.name} ${score} ${match.awayTeam.name}`;
+        document.body.appendChild(alertBox);
+        setTimeout(() => alertBox.remove(), 5000);
+    }
 
-        const data = await response.json();
-        window.matchesData = data.matches || [];
-        console.log("Yüklənən matç sayı:", window.matchesData.length);
+    function renderUI() {
+        // Canlı
+        const liveMatches = matchesData.filter(m => ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(m.status));
+        document.getElementById('live-container').innerHTML = liveMatches.length > 0 
+            ? liveMatches.map(m => `
+                <div class="match-card">
+                    <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong>
+                    <div style="font-size: 1.5em; color: #e74c3c;">${m.score?.current?.home ?? 0} : ${m.score?.current?.away ?? 0}</div>
+                </div>`).join('') : "Hazırda canlı oyun yoxdur.";
 
-
-
-        // 1. Tarixlər bölməsi
-        const scheduledMatches = window.matchesData.filter(m => {
-            const status = m.status ? m.status.toUpperCase() : '';
-            return status !== 'FINISHED' && status !== 'IN_PLAY' && status !== 'PAUSED' && status !== 'HALFTIME';
-        });
-        document.getElementById('schedule-container').innerHTML = scheduledMatches.map(m => `
+        // Bitmiş
+        const finishedMatches = matchesData.filter(m => m.status === 'FINISHED');
+        document.getElementById('finished-container').innerHTML = finishedMatches.map(m => `
             <div class="match-card">
-                <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong><br>
-                <small style="color:#666">📅 ${new Date(m.utcDate).toLocaleDateString()} ⏰ ${new Date(m.utcDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</small>
-            </div>`).join('') || "Planlaşdırılan oyun yoxdur.";
-
-      // 2. Canlı oyunlar bölməsi (Tamamilə yerli brauzer saatına uyğun filtrləmə)
-/*const indikiVaxt = new Date(); // Brauzerin tam olaraq hazırkı yerli saatı və tarixi
-
-const liveMatches = window.matchesData.filter(m => {
-    const status = m.status ? m.status.toUpperCase() : '';
-    const oyunVaxti = new Date(m.utcDate); // API-dən gələn vaxtı yerli saata çeviririk
-
-    // Şərt 1: API oyunu birbaşa canlı statusda göstərirsə
-    const isLiveStatus = status === 'IN_PLAY' || status === 'PAUSED' || status === 'HALFTIME' || status.includes('LIVE');
-    
-    // Şərt 2: Oyunun başlama saatı keçibsə (və ya çatibsə) və oyun hələ bitməyibsə
-    // Bu, UTC vaxt fərqi yaransa belə oyunu canlı panelinə salır
-    const oyunBaslayib = (oyunVaxti <= indikiVaxt) && (status !== 'FINISHED');
-
-    return isLiveStatus || oyunBaslayib;
-});
-
-const flagStyle = `width: 24px; height: auto; vertical-align: middle; margin: 0 8px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);`;
-
-document.getElementById('live-container').innerHTML = liveMatches.map(m => {
-    const homeScore = (m.score && m.score.current && m.score.current.home !== null) ? m.score.current.home : 
-                      ((m.score && m.score.fullTime && m.score.fullTime.home !== null) ? m.score.fullTime.home : 0);
-                      
-    const awayScore = (m.score && m.score.current && m.score.current.away !== null) ? m.score.current.away : 
-                      ((m.score && m.score.fullTime && m.score.fullTime.away !== null) ? m.score.fullTime.away : 0);
-
-    // Oyunun yerli saatla başlama vaxtını formatlayırıq (məsələn: 21:00)
-    const yerliSaat = new Date(m.utcDate).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
-    return `
-    <div class="match-card" style="border-left: 4px solid #e74c3c; background: #fff5f5;">
-        <div style="display: flex; align-items: center; margin-bottom: 8px;">
-            <img src="${m.homeTeam.crest || ''}" style="${flagStyle}" onerror="this.style.display='none'">
-            <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong>
-            <img src="${m.awayTeam.crest || ''}" style="${flagStyle}" onerror="this.style.display='none'">
-        </div>
-        <div style="font-size: 1.6em; font-weight: bold; color: #e74c3c; margin: 5px 0; padding-left: 40px;">
-            ${homeScore} : ${awayScore}
-        </div>
-        <small style="padding-left: 40px; color: #e74c3c; font-weight: bold;">
-            🔴 CANLI (Başlama saatı: ${yerliSaat})
-        </small>
-    </div>`;
-}).join('') || `<p style="color:gray; padding:10px;">Hazırkı saata uyğun canlı oynanılan oyun tapılmadı.</p>`;
-      */ // 3. Bitmiş oyunlar bölməsi
-     /* document.getElementById('live-container').innerHTML = matchesData.filter(m => 
-    m.status === 'IN_PLAY' || m.status === 'PAUSED' || m.status === 'HALFTIME'
-).map(m => {
-    // Cari hesabı almaq üçün: birinci 'current' sahəsini yoxlayırıq, 
-    // yoxdursa 'fullTime' sahəsinə baxırıq.
-    const homeScore = (m.score.current && m.score.current.home !== null) ? m.score.current.home : (m.score.fullTime.home ?? 0);
-    const awayScore = (m.score.current && m.score.current.away !== null) ? m.score.current.away : (m.score.fullTime.away ?? 0);
-    
-    return `
-    <div class="match-card">
-        <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong><br>
-        <div style="font-size: 1.5em; font-weight: bold; color: #e74c3c; margin: 10px 0;">
-            ${homeScore} : ${awayScore}
-        </div>
-        <small>Status: ${m.status}</small>
-    </div>`;
-}).join('') || "Hazırda canlı oyun yoxdur.";
-*/
-        // 1. Canlı oyunları tapmaq üçün daha geniş şərt
-const liveMatches = window.matchesData.filter(m => {
-    const status = (m.status || '').toUpperCase();
-    const isLiveStatus = ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(status);
-    
-    // Əlavə təhlükəsizlik: Oyun artıq başlayıbsa, lakin status hələ 'TIMED' və ya 'SCHEDULED'dirsə
-    // bu şərt oyunu canlı siyahısına salacaq.
-    const isStarted = (new Date(m.utcDate) <= new Date()) && (status !== 'FINISHED' && status !== 'CANCELLED');
-    
-    return isLiveStatus || isStarted;
-});
-
-// 2. Render etmə
-document.getElementById('live-container').innerHTML = liveMatches.length > 0 
-    ? liveMatches.map(m => {
-        // Hesabı daha etibarlı yollarla alırıq
-        const score = m.score?.current || m.score?.fullTime || { home: 0, away: 0 };
-        return `
-        <div class="match-card" style="border-left: 4px solid #e74c3c;">
-            <strong>${m.homeTeam.name} vs ${m.awayTeam.name}</strong><br>
-            <div style="font-size: 1.5em; font-weight: bold; color: #e74c3c; margin: 10px 0;">
-                ${score.home ?? 0} : ${score.away ?? 0}
-            </div>
-            <small>Status: ${m.status}</small>
-        </div>`;
-    }).join('') 
-    : "Hazırda canlı oyun yoxdur (və ya API-dən məlumat gecikir).";
-
-        
-       const finishedMatches = window.matchesData.filter(m => {
-            const status = m.status ? m.status.toUpperCase() : '';
-            return status === 'FINISHED';
-        });
-        document.getElementById('finished-container').innerHTML = finishedMatches.map(m => {
-    // KONSOLA YAZDIRAQ
-    console.log("Matç datası:", m); 
-    
-    // Əgər score null-dursa, bu konsolda görsənəcək
-    const h = m.score?.fullTime?.home ?? 0;
-    const a = m.score?.fullTime?.away ?? 0;
-    
-    return `<div class="match-card">
-        <strong>${m.homeTeam?.name || "Naməlum"} ${h}:${a} ${m.awayTeam?.name || "Naməlum"}</strong>
-        <br><small style="color:green">✅ Bitib</small>
-    </div>`;
-}).join('') || "Bitmiş oyun yoxdur.";
-
-        // Bitmiş oyunlar bölməsi - DÜZƏLİŞ
-/*const finishedMatches = window.matchesData.filter(m => {
-    const status = (m.status || '').toUpperCase();
-    return status === 'FINISHED';
-});
-
-const finishedContainer = document.getElementById('finished-container');
-if (finishedContainer) {
-    finishedContainer.innerHTML = finishedMatches.length > 0 
-        ? finishedMatches.map(m => `
-            <div class="match-card">
-                <strong>${m.homeTeam?.name || 'Ev sahibi'}</strong> 
-                ${m.score?.fullTime?.home ?? 0}:${m.score?.fullTime?.away ?? 0} 
-                <strong>${m.awayTeam?.name || 'Qonaq'}</strong>
+                ${m.homeTeam.name} ${m.score?.fullTime?.home ?? 0}:${m.score?.fullTime?.away ?? 0} ${m.awayTeam.name}
                 <br><small style="color:green">✅ Bitib</small>
-            </div>`).join('') 
-        : "<p style='padding:10px;'>Bitmiş oyun tapılmadı.</p>";
-} */
-//document.getElementById('finished-container').innerHTML = window.matchesData.filter(m => m.status === 'FINISHED').map(m => `<div class="match-card">${m.homeTeam.name} ${m.score.fullTime.home}:${m.score.fullTime.away} ${m.awayTeam.name}</div>`).join('') || "Oyun yoxdur.";
-        
-        // 4. Proqnoz tabı bölməsi
-        document.getElementById('tab2-container').innerHTML = window.matchesData.slice(0, 20).map((m) => {
-            const saved = localStorage.getItem('s-' + currentUser + '-' + m.id);
-            const isDisabled = saved ? 'disabled' : '';
-            return `
-            <div class="match-card">${m.homeTeam.name} vs ${m.awayTeam.name} <br>
-                <input type="number" id="h-${m.id}" value="${saved ? saved.split(' - ')[0] : ''}" ${isDisabled}>
-                <input type="number" id="a-${m.id}" value="${saved ? saved.split(' - ')[1] : ''}" ${isDisabled}>
-                <button onclick="saveScore('${m.id}')" class="main-btn" style="background:${saved ? '#ccc':'var(--accent)'}; color:white" ${isDisabled}>
-                    ${saved ? 'Yadda saxlanıldı' : 'Yadda saxla'}
-                </button>
-            </div>`;
-        }).join('');
-        
-        updatePointsTable(); 
-        updateNotifications();
-        checkAndRefreshStatus();
-
-    } catch (e) {
-        console.error("Xəta baş verdi:", e);
+            </div>`).join('') || "Bitmiş oyun yoxdur.";
     }
-};
-*/
+
+    // 4. Digər funksiyalar (Sizin köhnə koddan qalanlar)
+
     function saveScore(matchId) {
         const m = window.matchesData.find(match => match.id == matchId);
         if (!m) { alert("Matç tapılmadı."); return; }
