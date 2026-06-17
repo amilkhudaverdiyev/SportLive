@@ -1,5 +1,5 @@
 
-FfgAa<!DOCTYPE html>
+FfbbnnngAa<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -122,24 +122,35 @@ FfgAa<!DOCTYPE html>
 
     // 3. API və Render funksiyaları
     window.fetchMatches = async function() {
-        if (!currentUser) return;
-        const API_KEY = '100dddf0da034503890c0624dc38776d';
-        const targetUrl = `https://api.football-data.org/v4/competitions/WC/matches?t=${new Date().getTime()}`;
-        const proxyUrl = 'https://api.allorigins.win/get?url=' + encodeURIComponent(targetUrl);
+    if (!currentUser) return;
+    
+    // API Açarınızı bura daxil edin
+    const API_KEY = '100dddf0da034503890c0624dc38776d';
+    const targetUrl = 'https://api.football-data.org/v4/competitions/WC/matches';
+    
+    // Daha stabil proksi
+    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
 
-        try {
-            const response = await fetch(proxyUrl);
-            const dataWrapper = await response.json();
-            const data = JSON.parse(dataWrapper.contents);
-            
-            if (data.matches) {
-                matchesData = data.matches;
-                checkGoals(matchesData);
-                renderUI();
-                updateNotifications();
-            }
-        } catch (e) { console.error("Yeniləmə xətası:", e); }
-    };
+    try {
+        const response = await fetch(proxyUrl, {
+            headers: { 'X-Auth-Token': API_KEY }
+        });
+
+        if (!response.ok) throw new Error("API cavab vermədi: " + response.status);
+
+        const data = await response.json();
+        
+        if (data.matches) {
+            window.matchesData = data.matches;
+            checkGoals(window.matchesData); // Qol yoxlayıcı
+            renderUI(); // Ekranı yenilə
+        }
+    } catch (e) {
+        console.error("Yeniləmə xətası:", e);
+        document.getElementById('live-container').innerHTML = "Server bağlantısı uğursuz oldu. Bir azdan yenidən cəhd edin.";
+    }
+};
+
 
     function checkGoals(matches) {
         matches.forEach(m => {
