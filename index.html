@@ -511,17 +511,47 @@ if (finishedContainer) {
 }
 
     function calculateAndNotify(m, matchId) {
+        const key = 's-' + currentUser + '-' + matchId;
         const saved = localStorage.getItem('s-' + currentUser + '-' + matchId);
-        if (!saved) return;
+       console.log(`[Hesablama] İndeks: ${matchId}, Açar: ${key}, Saxlanan: ${saved}`);
+    
+        if (!saved) {
+            console.warn(`[Xəta] ${key} açarı üzrə proqnoz tapılmadı!`);
+            return;
+        } 
         const [h, a] = saved.split(' - ').map(Number);
         const realH = m.score.fullTime.home;
         const realA = m.score.fullTime.away;
+       console.log(`[Müqayisə] Proqnoz: ${h}:${a}, Real nəticə: ${realH}:${realA}`);
+    
         let pts = parseInt(localStorage.getItem('pts_' + currentUser) || 0);
         let msgText = "";
         const matchName = `${m.homeTeam.name} - ${m.awayTeam.name}`;
 
-        if (h === realH && a === realA) { pts += 4; msgText = `${matchName} (${realH}:${realA}) - Dəqiq hesab! 4 xal.`; }
-        else { msgText = `${matchName} (${realH}:${realA}) - Proqnozunuz düzgün çıxmadı.`; }
+        if (h === realH && a === realA) { pts += 4; msgText = `${matchName} (${realH}:${realA}) - Dəqiq hesab! 4 xal.`; 
+        console.log(`[Nəticə] Dəqiq hesab tapıldı. +4 xal.`);
+                                        
+ } else if ((realH !== realA) && (h !== a) && ((h - a) === (realH - realA))) {
+        pts += 2;
+        msgText = `${matchName} (${realH}:${realA}) - Qol fərqi düzdür! 2 xal qazandınız.`;
+    console.log(`[Nəticə] Dəqiq hesab tapıldı. +4 xal.`);
+                                       
+        } else if (realH === realA && h === a) {
+        pts += 1;
+        msgText = `${matchName} (${realH}:${realA}) - Bərabərlik düz tapıldı! 1 xal qazandınız.`;
+    console.log(`[Nəticə] Dəqiq hesab tapıldı. +4 xal.`);
+                                       
+        } else if ((realH > realA && h > a) || (realA > realH && a > h)) {
+        pts += 1;
+        msgText = `${matchName} (${realH}:${realA}) - Qalibi düzgün tapdınız! 1 xal qazandınız.`;
+   console.log(`[Nəticə] Dəqiq hesab tapıldı. +4 xal.`);
+                                       
+        } 
+        
+        else { msgText = `${matchName} (${realH}:${realA}) - Proqnozunuz düzgün çıxmadı.`;
+             console.log(`[Nəticə] Dəqiq hesab tapıldı. +4 xal.`);
+                                       
+             }
 
         localStorage.setItem('pts_' + currentUser, pts);
         localStorage.setItem('msg_' + currentUser + '_' + matchId, JSON.stringify({ text: msgText, time: Date.now() }));
