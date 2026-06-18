@@ -1,5 +1,5 @@
 
-Avva<!DOCTYPE html>
+Amma<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -257,9 +257,12 @@ document.getElementById('live-container').innerHTML = liveMatches.map(m => {
 }).join('') || "Hazırda canlı oyun yoxdur.";
 */
         // 1. Canlı oyunları tapmaq üçün daha geniş şərt
-const liveMatches = window.matchesData.filter(m => {
+const now = new Date().getTime(); 
+
+        const liveMatches = window.matchesData.filter(m => {
     const status = (m.status || '').toUpperCase();
     const isLiveStatus = ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(status);
+    ||(now >= matchTime && status !== 'FINISHED' && status !== 'CANCELLED');
     
     // Əlavə təhlükəsizlik: Oyun artıq başlayıbsa, lakin status hələ 'TIMED' və ya 'SCHEDULED'dirsə
     // bu şərt oyunu canlı siyahısına salacaq.
