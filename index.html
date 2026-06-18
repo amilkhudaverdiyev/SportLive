@@ -1,5 +1,5 @@
 
-Aaa<!DOCTYPE html>
+Avva<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -177,7 +177,10 @@ const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`https://api.foot
         window.matchesData = data.matches || [];
         console.log("Yüklənən matç sayı:", window.matchesData.length);
 
-
+console.log("--- BÜTÜN MATÇLARIN STATUSLARI ---");
+        window.matchesData.forEach(m => {
+            console.log(`${m.homeTeam.name} vs ${m.awayTeam.name} | Status: ${m.status}`);
+        });
 
         // 1. Tarixlər bölməsi
         const scheduledMatches = window.matchesData.filter(m => {
