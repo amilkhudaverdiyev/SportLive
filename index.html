@@ -1,5 +1,5 @@
 
-Aooooa<!DOCTYPE html>
+Aoooorrrrrrra<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -176,7 +176,17 @@ const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(`https://api.foot
         const data = await response.json();
         window.matchesData = data.matches || [];
         console.log("Yüklənən matç sayı:", window.matchesData.length);
-
+// --- BURA YAZIN: Vaxt gecikmələrini yoxlayan kod ---
+console.log("--- VAXT GECİKMƏSİ DİAQNOSTİKASI ---");
+window.matchesData.forEach(m => {
+    const baslama = new Date(m.utcDate).getTime();
+    const indi = new Date().getTime();
+    const ferq = (indi - baslama) / 1000 / 60; // Fərqi dəqiqə ilə alırıq
+    
+    // Əgər oyunun vaxtı keçibsə, amma status hələ də TIMED-dırsa, xəbərdarlıq et
+    if(m.status === 'TIMED' && ferq > 0) {
+        console.warn(`DİQQƏT: ${m.homeTeam.name} vs ${m.awayTeam.name} oyunu ${Math.round(ferq)} dəqiqədir başlamalı idi, amma API statusu hələ də TIMED-dır.`);
+    }
 console.log("--- BÜTÜN MATÇLARIN STATUSLARI ---");
         window.matchesData.forEach(m => {
             console.log(`${m.homeTeam.name} vs ${m.awayTeam.name} | Status: ${m.status}`);
