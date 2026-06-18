@@ -1,5 +1,5 @@
 
-Amma<!DOCTYPE html>
+Appa<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -261,7 +261,9 @@ const now = new Date().getTime();
 
         const liveMatches = window.matchesData.filter(m => {
     const status = (m.status || '').toUpperCase();
-    const isLiveStatus = ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(status);
+    const matchTime = new Date(m.utcDate).getTime();
+    
+            const isLiveStatus = ['IN_PLAY', 'PAUSED', 'HALFTIME', 'LIVE'].includes(status);
     ||(now >= matchTime && status !== 'FINISHED' && status !== 'CANCELLED');
     
     // Əlavə təhlükəsizlik: Oyun artıq başlayıbsa, lakin status hələ 'TIMED' və ya 'SCHEDULED'dirsə
