@@ -1,5 +1,5 @@
 
-V10030<!DOCTYPE html>
+V20745<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -45,11 +45,13 @@ V10030<!DOCTYPE html>
         <input type="password" id="password" class="login-input" placeholder="Parol">
         <button onclick="initialLogin()" class="main-btn active" style="width:100%">Daxil ol</button>
     </div>
-    <div id="reset-form" style="display:none;">
-        <h3>Parolu yenilə</h3>
-        <input type="password" id="new-password" class="login-input" placeholder="Yeni parol">
-        <button onclick="updatePassword()" class="main-btn active" style="background:#27ae60; width:100%">Yadda saxla</button>
-    </div>
+   <div id="reset-form" style="display:none;">
+    <h3>Yeni parol təyin edin</h3>
+    <input type="password" id="new-password" class="login-input" placeholder="Yeni parol">
+    <input type="password" id="confirm-password" class="login-input" placeholder="Parolu təsdiqləyin">
+    <button onclick="updatePassword()" class="main-btn active" style="background:#27ae60; width:100%">Təsdiqlə və Daxil ol</button>
+</div>
+ 
 </div>
 
 <div id="main-system" style="display:none;">
@@ -99,7 +101,7 @@ V10030<!DOCTYPE html>
     let lastScoreState = {};
 
     // 2. Giriş funksiyaları
-    function initialLogin() {
+    /*function initialLogin() {
         const user = document.getElementById('username').value.trim();
         const pass = document.getElementById('password').value;
         if (!user) { alert("İstifadəçi adını daxil edin!"); return; }
@@ -108,9 +110,9 @@ V10030<!DOCTYPE html>
             document.getElementById('login-form').style.display = 'none'; 
             document.getElementById('reset-form').style.display = 'block'; 
         } else { alert("Yanlış parol!"); }
-    }
+    } */
 
-    function updatePassword() {
+   /* function updatePassword() {
         const newPass = document.getElementById('new-password').value;
         if (newPass.length >= 4) {
             localStorage.setItem('pass_' + currentUser, newPass);
@@ -119,6 +121,64 @@ V10030<!DOCTYPE html>
             fetchMatches();
         } else { alert("Parol ən az 4 simvol olmalıdır!"); }
     }
+    */
+
+    // 2. Giriş funksiyaları
+function initialLogin() {
+    const user = document.getElementById('username').value.trim();
+    const pass = document.getElementById('password').value;
+    
+    if (!user) { alert("İstifadəçi adını daxil edin!"); return; }
+    
+    // Əgər istifadəçi artıq öz parolunu təyin edibsə, onu yoxlayırıq
+    const savedPass = localStorage.getItem('pass_' + user);
+    
+    if (savedPass) {
+        // Əgər artıq parol qoyulubsa, birbaşa onu istəyirik
+        if (pass === savedPass) {
+            currentUser = user;
+            document.getElementById('login-panel').style.display = 'none';
+            document.getElementById('main-system').style.display = 'block';
+            fetchMatches();
+        } else {
+            alert("Yanlış parol!");
+        }
+    } else {
+        // İlkin giriş: 1234-lə daxil olub parol dəyişməyə məcbur edirik
+        if (pass === "1234") { 
+            currentUser = user; 
+            document.getElementById('login-form').style.display = 'none'; 
+            document.getElementById('reset-form').style.display = 'block'; 
+        } else { 
+            alert("Yanlış parol!"); 
+        }
+    }
+}
+
+function updatePassword() {
+    const newPass = document.getElementById('new-password').value;
+    const confirmPass = document.getElementById('confirm-password').value;
+    
+    if (newPass.length < 4) {
+        alert("Parol ən az 4 simvol olmalıdır!");
+        return;
+    }
+    
+    if (newPass !== confirmPass) {
+        alert("Parollar uyğun gəlmir!");
+        return;
+    }
+    
+    // Parolu yadda saxlayırıq
+    localStorage.setItem('pass_' + currentUser, newPass);
+    
+    // Sistemi işə salırıq
+    document.getElementById('login-panel').style.display = 'none';
+    document.getElementById('main-system').style.display = 'block';
+    fetchMatches();
+}
+
+    
 
     // 3. API və Render funksiyaları
   /*  window.fetchMatches = async function() {
