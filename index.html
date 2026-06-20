@@ -1,5 +1,5 @@
 
-V20745<!DOCTYPE html>
+V30920<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -49,7 +49,9 @@ V20745<!DOCTYPE html>
     <h3>Yeni parol təyin edin</h3>
     <input type="password" id="new-password" class="login-input" placeholder="Yeni parol">
     <input type="password" id="confirm-password" class="login-input" placeholder="Parolu təsdiqləyin">
-    <button onclick="updatePassword()" class="main-btn active" style="background:#27ae60; width:100%">Təsdiqlə və Daxil ol</button>
+    <input type="text" id="group-code" class="login-input" placeholder="Qrup kodunu daxil edin">
+    
+       <button onclick="updatePassword()" class="main-btn active" style="background:#27ae60; width:100%">Təsdiqlə və Daxil ol</button>
 </div>
  
 </div>
@@ -127,6 +129,15 @@ V20745<!DOCTYPE html>
 function initialLogin() {
     const user = document.getElementById('username').value.trim();
     const pass = document.getElementById('password').value;
+    const group = document.getElementById('group-code').value.trim().toLowerCase(); // Qrupu kiçik hərflərlə alırıq
+
+    if (!user || !group) { 
+        alert("İstifadəçi adı və Qrup kodunu daxil edin!"); 
+        return; 
+    }
+
+    // Qrup kodunu istifadəçinin adına bağlayırıq
+    localStorage.setItem('group_' + user, group);
     
     if (!user) { alert("İstifadəçi adını daxil edin!"); return; }
     
@@ -558,7 +569,7 @@ if (finishedContainer) {
     }).join('') || "<p style='color:gray; padding:10px;'>Hələlik bildiriş yoxdur.</p>";
 }
 
-    function updatePointsTable() {
+    /*function updatePointsTable() {
         let users = [];
         for (let i = 0; i < localStorage.length; i++) {
             let key = localStorage.key(i);
@@ -566,7 +577,40 @@ if (finishedContainer) {
         }
         users.sort((a, b) => b.pts - a.pts);
         document.getElementById('table-body').innerHTML = users.map((u, i) => `<tr><td>${i+1}</td><td>${u.name}</td><td>${u.pts}</td></tr>`).join('');
+    } */
+    function updatePointsTable() {
+    // Cari istifadəçinin qrupunu al
+    const myGroup = localStorage.getItem('group_' + currentUser);
+    
+    let users = [];
+    for (let i = 0; i < localStorage.length; i++) {
+        let key = localStorage.key(i);
+        
+        // Yalnız xalları yoxlayırıq
+        if (key.startsWith('pts_')) {
+            let uName = key.replace('pts_', '');
+            let uGroup = localStorage.getItem('group_' + uName);
+            
+            // Əgər istifadəçi həmin qrupa aiddirsə siyahıya əlavə et
+            if (uGroup === myGroup) {
+                users.push({ name: uName, pts: parseInt(localStorage.getItem(key)) });
+            }
+        }
     }
+    
+    // Sıralama
+    users.sort((a, b) => b.pts - a.pts);
+    
+    // Cədvəli göstər
+    document.getElementById('table-body').innerHTML = users.map((u, i) => `
+        <tr>
+            <td>${i + 1}</td>
+            <td>${u.name}</td>
+            <td>${u.pts}</td>
+        </tr>
+    `).join('');
+}
+
 
     function checkAndRefreshStatus() {
     for (let i = 0; i < localStorage.length; i++) {
