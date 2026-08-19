@@ -1,4 +1,4 @@
-v2030.1.6.2<!DOCTYPE html>
+v2030.1.6.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -740,13 +740,12 @@ async function loadCompanyData() {
         calculateProfit();
     }
 
-  async function openCheckModal() {
+ async function openCheckModal() {
     let checkContent = document.getElementById('checkContent');
     let checkModal = document.getElementById('checkModal');
     
     if (!checkContent || !checkModal) return;
 
-    // Yüklənir mesajı
     checkContent.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Bugünkü əməliyyatlar yüklənir...</p>`;
     checkModal.style.display = 'flex';
 
@@ -756,11 +755,16 @@ async function loadCompanyData() {
     }
 
     try {
-        // Bugünün tarixini yerli formatda alırıq (məsələn: 19.08.2026)
-        let todayLocale = new Date().toLocaleDateString('az-AZ');
+        // Cihazın dil parametrlərindən ASILI OLMADAN bugünkü günü YYYY-MM-DD və DD.MM.YYYY kimi alırıq
+        let now = new Date();
+        let yyyy = now.getFullYear();
+        let mm = String(now.getMonth() + 1).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
 
-        // 1. Şərtləri SQL tərəfində ISO ilə filtrləmək `date` sütununuz text/locale formatındadırsa xəta verir.
-        // Məlumatı müəssisəyə görə çəkib, JS tərəfində təhlükəsiz filtrləyirik.
+        let isoToday = `${yyyy}-${mm}-${dd}`; // "2026-08-19"
+        let dotToday = `${dd}.${mm}.${yyyy}`; // "19.08.2026"
+        let slashToday = `${dd}/${mm}/${yyyy}`; // "19/08/2026"
+
         let { data: allItems, error } = await window.supabaseClient
             .from('sales_history')
             .select('*')
@@ -774,14 +778,15 @@ async function loadCompanyData() {
 
         allItems = allItems || [];
 
-        // 2. Bugünkü qeydləri filtrləyirik ('system_init' istisna olunur)
+        // Bütün mümkünsüz tarix formatlarını yoxlayan universal filtrləmə
         let todayItems = allItems.filter(i => {
             if (i.type === 'system_init') return false;
             if (!i.date) return false;
-            return i.date.includes(todayLocale);
+            
+            let dStr = String(i.date);
+            return dStr.includes(isoToday) || dStr.includes(dotToday) || dStr.includes(slashToday);
         });
 
-        // Satışları süzürük
         let todaySales = todayItems.filter(i => i.type === 'sale');
 
         // Hesablamalar
@@ -797,7 +802,6 @@ async function loadCompanyData() {
                 <b style="font-size:12px; color:#636e72; display:block; margin-bottom:8px;">BÜGÜNKÜ ƏMƏLİYYATLAR:</b>
                 <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
 
-            // Ən son əməliyyatı yuxarıda göstərmək üçün siyahını tərsinə çeviririk
             todayItems.reverse().forEach(i => {
                 let isSale = i.type === 'sale';
                 let isPayment = i.type === 'payment';
@@ -809,7 +813,6 @@ async function loadCompanyData() {
                 let paidVal = Math.abs(Number(i.paid) || 0);
                 let amountText = isSale ? `${totalVal.toFixed(2)} ₼` : `${paidVal.toFixed(2)} ₼`;
 
-                // RAW sahəsinin təhlükəsiz emalı (SyntaxError qarşısını almaq üçün)
                 let rawText = "";
                 if (i.raw) {
                     if (Array.isArray(i.raw)) {
@@ -819,7 +822,7 @@ async function loadCompanyData() {
                             let parsed = JSON.parse(i.raw);
                             rawText = Array.isArray(parsed) ? parsed.join(', ') : String(parsed);
                         } catch (e) {
-                            rawText = i.raw; // Pozulmuş JSON olduqda mətni olduğu kimi götürür
+                            rawText = i.raw;
                         }
                     } else {
                         rawText = String(i.raw);
