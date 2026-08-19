@@ -1,4 +1,4 @@
-v2030.1.6<!DOCTYPE html>
+v2030.1.6.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -764,9 +764,9 @@ async function loadCompanyData() {
             .from('sales_history')
             .select('*')
             .eq('company_name', currentCompany)
-            .gte('created_at', todayISO + 'T00:00:00')
-            .lte('created_at', todayISO + 'T23:59:59')
-            .order('created_at', { ascending: false });
+            .gte('date', todayISO + 'T00:00:00')
+            .lte('date', todayISO + 'T23:59:59')
+            .order('date', { ascending: false });
 
         if (error) {
             console.error("openCheckModal Supabase xətası:", error);
@@ -811,7 +811,7 @@ async function loadCompanyData() {
                 let rawList = Array.isArray(i.raw) ? i.raw : (typeof i.raw === 'string' ? JSON.parse(i.raw || '[]') : []);
                 let statsExtra = isSale && rawList.length > 0 ? ` | Çəkilər: ${rawList.join(', ')}` : '';
 
-                let displayDate = i.date ? (i.date.split(',')[1] || i.date) : new Date(i.created_at).toLocaleTimeString('az-AZ');
+                let displayDate = i.date ? (i.date.split(',')[1] || i.date) : new Date(i.date).toLocaleTimeString('az-AZ');
 
                 listHtml += `<div style="background:#f8f9fa; padding:8px 10px; border-radius:6px; border-left:4px solid ${badgeColor}; font-size:12px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
