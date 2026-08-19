@@ -1,4 +1,4 @@
-v2025<!DOCTYPE html>
+v2026<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -939,18 +939,42 @@ async function calc() {
         document.getElementById('debtSummary').innerHTML = html || "<p style='text-align:center; padding:20px;'>Aktiv borc yoxdur.</p>";
     }
 
-    function handleBalance(key, originalName, isCredit) {
-        let val = parseFloat(document.getElementById('pay_' + key).value);
-        if (isNaN(val) || val <= 0) return alert("Məbləğ daxil edin!");
-        let paid = isCredit ? -val : val;
-        let debt = isCredit ? val : -val;
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        h.unshift({ name: originalName, extra: isCredit ? "PUL QAYTARILDI" : "BORC ÖDƏNİŞİ", type: isCredit ? 'refund' : 'payment', sum: 0, fire: 0, net: 0, total: 0, price: 0, paid: paid, debt: debt, date: new Date().toLocaleString('az-AZ'), raw: [] });
-        localStorage.setItem(getStorageKey('h_v7'), JSON.stringify(h.slice(0, 1000)));
-        ldB();
-        updateDash();
-        alert("Əməliyyat qeyd olundu.");
+   async function handleBalance(key, originalName, isCredit) {
+    let val = parseFloat(document.getElementById('pay_' + key).value);
+    if (isNaN(val) || val <= 0) return alert("Məbləğ daxil edin!");
+    
+    let paid = isCredit ? -val : val;
+    let debt = isCredit ? val : -val;
+    let dateStr = new Date().toLocaleString('az-AZ');
+    
+    let paymentData = {
+        company_name: currentCompany,
+        name: originalName,
+        extra: isCredit ? "PUL QAYTARILDI" : "BORC ÖDƏNİŞİ",
+        type: isCredit ? 'refund' : 'payment',
+        sum: 0,
+        fire: 0,
+        net: 0,
+        total: 0,
+        price: 0,
+        paid: paid,
+        debt: debt,
+        date: dateStr,
+        raw: []
+    };
+
+    if (window.supabaseClient) {
+        try {
+            await window.supabaseClient.from('sales_history').insert([paymentData]);
+        } catch(e) {
+            console.error("Ödəniş Supabase xətası:", e);
+        }
     }
+
+    ldB();
+    updateDash();
+    alert("Əməliyyat qeyd olundu.");
+}
 async function updateDash() {
     let todayIso = new Date().toISOString().split('T')[0];
     let todayLocal = new Date().toLocaleDateString('az-AZ');
