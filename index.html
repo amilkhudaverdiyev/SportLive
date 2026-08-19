@@ -1,4 +1,4 @@
-v2031.3.1<!DOCTYPE html>
+v2031.3.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1478,24 +1478,29 @@ function renderDashStats(s) {
 }
 function clr() {
     if (confirm("Təmizlənsin?")) {
-        // 1. LocalStorage müvəqqəti məlumatı silirik
+        // 1. LocalStorage-də saxlanılan müvəqqəti məlumatları silirik
         if (typeof getStorageKey === 'function') {
             localStorage.removeItem(getStorageKey('s_n'));
+            localStorage.removeItem(getStorageKey('raw'));
+            localStorage.removeItem(getStorageKey('extra'));
         } else {
             localStorage.removeItem('s_n');
+            localStorage.removeItem('raw');
+            localStorage.removeItem('extra');
         }
 
-        // 2. Hesabla pəncərəsi daxilində olan BÜTÜN inputları tapıb sıfırlayırıq
-        let allInputs = document.querySelectorAll('#calcScreen input, .calc-container input, #saleForm input, input[type="text"], input[type="number"]');
-        allInputs.forEach(input => {
-            input.value = '';
+        // 2. Ekranda olan BÜTÜN xanaları (text, number, hidden, select, textarea) təmizləyirik
+        let allFields = document.querySelectorAll('input, select, textarea');
+        allFields.forEach(field => {
+            if (field.type !== 'button' && field.type !== 'submit' && field.type !== 'reset') {
+                field.value = '';
+            }
         });
 
-        // 3. Xüsusi ID-lərə qarşı əlavə zəmanət təmizləməsi
-        let ids = ['s_n', 's_t', 's_p', 's_e', 'customerName', 'totalAmount', 'paidAmount', 'extraCount', 'calcName', 'calcTotal', 'calcPaid'];
-        ids.forEach(id => {
-            let el = document.getElementById(id);
-            if (el) el.value = '';
+        // 3. Əgər çəkilər/saylar dinamik list (HTML tag/div/span) kimi ekranda görünürsə, onları da sıfırlayırıq
+        let dynamicTags = document.querySelectorAll('.weight-tag, .count-tag, #rawList, #weightsList, .raw-container, #extraList');
+        dynamicTags.forEach(tag => {
+            tag.innerHTML = '';
         });
 
         // 4. Kursoru ilk xanaya qaytarırıq
@@ -1503,7 +1508,6 @@ function clr() {
         if (firstInput) firstInput.focus();
     }
 }
-
 
 async function clrH() { 
     if(confirm("Tarixçə silinsin?")) { 
