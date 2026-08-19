@@ -1,4 +1,4 @@
-v2029<!DOCTYPE html>
+v2029.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1103,19 +1103,23 @@ function toggleSaleDetail(id) {
     container.innerHTML = html || "<p style='text-align:center; padding:20px;'>Aktiv borc yoxdur.</p>";
 }
 
-   async function handleBalance(key, originalName, isCredit) {
-    let val = parseFloat(document.getElementById('pay_' + key).value);
-    if (isNaN(val) || val <= 0) return alert("Məbləğ daxil edin!");
+  async function handleBalance(key, originalName, isCredit) {
+    let inputEl = document.getElementById('pay_' + key);
+    let val = parseFloat(inputEl ? inputEl.value : 0);
     
+    if (isNaN(val) || val <= 0) return alert("Məbləğ daxil edin!");
+
     let paid = isCredit ? -val : val;
     let debt = isCredit ? val : -val;
+    let type = isCredit ? 'refund' : 'payment';
+    let extraText = isCredit ? "PUL QAYTARILDI" : "BORC ÖDƏNİŞİ";
     let dateStr = new Date().toLocaleString('az-AZ');
-    
+
     let paymentData = {
-        company_name: currentCompany,
+        company_name: typeof currentCompany !== 'undefined' ? currentCompany : '',
         name: originalName,
-        extra: isCredit ? "PUL QAYTARILDI" : "BORC ÖDƏNİŞİ",
-        type: isCredit ? 'refund' : 'payment',
+        extra: extraText,
+        type: type,
         sum: 0,
         fire: 0,
         net: 0,
@@ -1127,17 +1131,25 @@ function toggleSaleDetail(id) {
         raw: []
     };
 
+    // Yalnız Supabase-ə yazılır
     if (window.supabaseClient) {
         try {
-            await window.supabaseClient.from('sales_history').insert([paymentData]);
+            let { error } = await window.supabaseClient.from('sales_history').insert([paymentData]);
+            if (error) throw error;
         } catch(e) {
             console.error("Ödəniş Supabase xətası:", e);
+            return alert("Xəta baş verdi, ödəniş bazaya yazılamadı!");
         }
+    } else {
+        return alert("Baza ilə əlaqə yoxdur!");
     }
 
-    ldB();
-    updateDash();
-    alert("Əməliyyat qeyd olundu.");
+    if (inputEl) inputEl.value = '';
+
+    await ldB();
+    if (typeof updateDash === 'function') await updateDash();
+
+    alert(type === 'refund' ? "Pul qaytarıldı." : "Ödəniş qeyd edildi.");
 }
 async function updateDash() {
     let todayIso = new Date().toISOString().split('T')[0];
