@@ -1,4 +1,4 @@
-v2028<!DOCTYPE html>
+v2029<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1033,34 +1033,75 @@ function toggleSaleDetail(id) {
     });
     container.innerHTML = html + "</table>";
 }
-    function ldB() {
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        let totals = {};
-        h.forEach(item => {
-            let n = item.name.toLowerCase().trim();
-            if(!totals[n]) totals[n] = { originalName: item.name, totalDebt: 0 };
-            totals[n].totalDebt += item.debt;
-        });
-        let html = "";
-        Object.keys(totals).sort().forEach(key => {
-            let d = totals[key];
-            let debtVal = Math.round(d.totalDebt * 100) / 100;
-            if (debtVal !== 0) {
-                let isCredit = debtVal < 0;
-                html += `<div class="debt-item" style="border-left-color: var(--d);">
-                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <b>${d.originalName}</b>
-                        <span class="${isCredit ? 'txt-credit' : 'txt-debt'}">${Math.abs(debtVal).toFixed(2)} ₼</span>
-                    </div>
-                    <div style="display: flex; gap: 5px;">
-                        <input type="number" id="pay_${key}" placeholder="Məbləğ" style="padding: 8px; flex: 1;">
-                        <button onclick="handleBalance('${key}', '${d.originalName}', ${isCredit})" style="background: ${isCredit ? 'var(--gold)' : 'var(--s)'}; color: #000; padding: 0 15px; flex: 1;">${isCredit ? 'QAYTAR' : 'ÖDƏ'}</button>
-                    </div>
-                </div>`;
+   async function ldB() {
+    let container = document.getElementById('debtSummary');
+    if(!container) return;
+
+    container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
+
+    let totals = {};
+    let loadedFromSupabase = false;
+
+    // Supabase-dən məlumatı çəkirik
+    if (window.supabaseClient && currentCompany) {
+        try {
+            let { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('company_name', currentCompany);
+
+            if (!error && data) {
+                loadedFromSupabase = true;
+                data.forEach(item => {
+                    let rawName = (item.name || "").trim();
+                    if(!rawName) return;
+                    let n = rawName.toLowerCase();
+                    
+                    if(!totals[n]) totals[n] = { originalName: item.name, totalDebt: 0 };
+                    totals[n].totalDebt += (parseFloat(item.debt) || 0);
+                });
             }
-        });
-        document.getElementById('debtSummary').innerHTML = html || "<p style='text-align:center; padding:20px;'>Aktiv borc yoxdur.</p>";
+        } catch(e) {
+            console.error("Borcları hesablayarkən xəta:", e);
+        }
     }
+
+    // Şəbəkə xətası və ya Supabase olmasa, lokal yaddaşdan oxuyuruq
+    if (!loadedFromSupabase) {
+        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
+        h.forEach(item => {
+            let rawName = (item.name || "").trim();
+            if(!rawName) return;
+            let n = rawName.toLowerCase();
+
+            if(!totals[n]) totals[n] = { originalName: item.name, totalDebt: 0 };
+            totals[n].totalDebt += (parseFloat(item.debt) || 0);
+        });
+    }
+
+    let html = "";
+    Object.keys(totals).sort().forEach(key => {
+        let d = totals[key];
+        let debtVal = Math.round(d.totalDebt * 100) / 100;
+        if (debtVal !== 0) {
+            let isCredit = debtVal < 0;
+            let safeName = d.originalName.replace(/'/g, "\\'");
+            
+            html += `<div class="debt-item" style="border-left-color: var(--d);">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <b>${d.originalName}</b>
+                    <span class="${isCredit ? 'txt-credit' : 'txt-debt'}">${Math.abs(debtVal).toFixed(2)} ₼</span>
+                </div>
+                <div style="display: flex; gap: 5px;">
+                    <input type="number" id="pay_${key}" placeholder="Məbləğ" style="padding: 8px; flex: 1;">
+                    <button onclick="handleBalance('${key}', '${safeName}', ${isCredit})" style="background: ${isCredit ? 'var(--gold)' : 'var(--s)'}; color: #000; padding: 0 15px; flex: 1;">${isCredit ? 'QAYTAR' : 'ÖDƏ'}</button>
+                </div>
+            </div>`;
+        }
+    });
+
+    container.innerHTML = html || "<p style='text-align:center; padding:20px;'>Aktiv borc yoxdur.</p>";
+}
 
    async function handleBalance(key, originalName, isCredit) {
     let val = parseFloat(document.getElementById('pay_' + key).value);
