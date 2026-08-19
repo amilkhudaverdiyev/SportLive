@@ -1,4 +1,4 @@
-v2035/4<!DOCTYPE html>
+v2036<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1717,7 +1717,7 @@ async function clrPaymentsH() {
 
     alert(type === 'refund' ? "Pul qaytarıldı." : "Ödəniş qeyd edildi.");
 }
-async function updateDash() {
+/*async function updateDash() {
     let todayIso = new Date().toISOString().split('T')[0];
     let todayLocal = new Date().toLocaleDateString('az-AZ');
 
@@ -1791,7 +1791,58 @@ async function updateDash() {
             console.error("Paneli yeniləyərkən Supabase xətası:", e);
         }
     }
+} */
+    async function updateDash() {
+    let todayIso = new Date().toISOString().split('T')[0];
+    let todayLocal = new Date().toLocaleDateString('az-AZ');
+
+    let stats = { todaySale: 0, todayCash: 0, todayCount: 0, allSale: 0, allDebt: 0, allCount: 0 };
+
+    if (window.supabaseClient && currentCompany) {
+        try {
+            // Yalnız cari şirkətin məlumatlarını çəkirik
+            let { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('company_name', currentCompany);
+
+            if (!error && data) {
+                // Zibil qutusuna atılmış (silinmiş) sətirləri kənarlaşdırırıq
+                let activeData = data.filter(i => i.is_deleted !== true && i.is_deleted !== "true" && i.is_deleted !== 1);
+
+                activeData.forEach(i => {
+                    let isSale = !i.type || i.type === 'sale';
+                    let totalVal = parseFloat(i.total || i.totalSum) || 0;
+                    let paidVal = parseFloat(i.paid) || 0;
+                    let debtVal = parseFloat(i.debt) || 0;
+                    let countVal = parseInt(i.extra) || 0;
+
+                    if (isSale) { 
+                        stats.allSale += totalVal; 
+                        stats.allCount += countVal; 
+                    }
+                    stats.allDebt += debtVal; // Cari şirkətin aktiv ümumi borcu
+
+                    if (i.date && (i.date.startsWith(todayIso) || i.date.includes(todayLocal))) {
+                        if (isSale) { 
+                            stats.todaySale += totalVal; 
+                            stats.todayCount += countVal; 
+                        }
+                        stats.todayCash += paidVal;
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("updateDash xətası:", e);
+        }
+    }
+
+    // Paneldəki rəqəmləri ekrana yazdıran funksiyanı çağırırıq
+    if (typeof renderDashStats === 'function') {
+        renderDashStats(stats);
+    }
 }
+
 
 function renderDashStats(s) {
     if (document.getElementById('d-sale-t')) document.getElementById('d-sale-t').innerText = s.todaySale.toFixed(2) + " ₼";
