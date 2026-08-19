@@ -1,4 +1,4 @@
-v2032.2.3<!DOCTYPE html>
+v2033<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -917,8 +917,98 @@ async function loadCompanyData() {
         alert("Məlumatı yükləmək mümkün olmadı: " + error.message);
     }
 }
+async function ldTrash() {
+    const container = document.getElementById('trashTable');
+    container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Yüklənir...</p>`;
 
-    function ldTrash() {
+    if (!window.supabaseClient) {
+        container.innerHTML = `<p style="padding:20px; text-align:center; color:var(--d);">Supabase bağlantısı yoxdur.</p>`;
+        return;
+    }
+
+    try {
+        // Supabase-dən yalnız cari müəssisəyə aid və silinmiş (is_deleted = true) qeydləri çəkirik
+        let { data: trash, error } = await window.supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('company_name', currentCompany)
+            .eq('is_deleted', true)
+            .order('date', { ascending: false });
+
+        if (error) throw error;
+
+        if (!trash || !trash.length) {
+            container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Zibil qutusu boşdur. 🗑️</p>`;
+            return;
+        }
+
+        let html = "";
+        trash.forEach((i, index) => {
+            let isSale = i.type === 'sale';
+            let amount = isSale ? (i.total || 0) : Math.abs(i.paid || 0);
+            let color = isSale ? 'var(--a)' : 'var(--s)';
+            let typeName = isSale ? '📦 SATIŞ' : (i.type === 'refund' ? '⏪ QAYTARMA' : '💳 ÖDƏNİŞ');
+
+            // Raw məlumatının formatlanması (əgər string və ya array-dirsə)
+            let rawStr = '';
+            if (i.raw) {
+                if (Array.isArray(i.raw)) {
+                    rawStr = i.raw.join(' , ');
+                } else if (typeof i.raw === 'string') {
+                    rawStr = i.raw.split('\n').join(' , ');
+                }
+            }
+
+            html += `
+            <div style="background: var(--card-bg, #fff); margin-bottom: 10px; border-radius: 12px; border-left: 5px solid ${color}; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eee;">
+                <div onclick="toggleTrashDetail(${index})" style="padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <small style="color: ${color}; font-weight: bold; font-size: 10px;">${typeName}</small>
+                        <div style="font-weight: bold; font-size: 15px;">${i.name || 'Adsız'}</div>
+                        <small style="opacity: 0.6;">${i.date ? new Date(i.date).toLocaleString() : ''}</small>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-weight: bold; color: var(--d); font-size: 16px;">${amount.toFixed(2)} ₼</div>
+                        <small style="font-size: 10px; color: var(--a);">Ətraflı gör 🔍</small>
+                    </div>
+                </div>
+
+                <div id="trash-det-${index}" style="display: none; padding: 15px; background: #fafafa; border-top: 1px solid #eee; font-size: 13px; color: #333;">
+                    ${isSale ? `
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                            <div><b>Ümumi Çəki:</b> ${i.sum ? i.sum.toFixed(2) : 0} kq</div>
+                            <div><b>Faiz (1%):</b> ${i.fire ? i.fire.toFixed(2) : 0} kq</div>
+                            <div><b>Xalis Çəki:</b> ${i.net ? i.net.toFixed(3) : 0} kq</div>
+                            <div><b>Qiymət:</b> ${i.price ? i.price.toFixed(2) : 0} ₼</div>
+                            <div><b>Əlavə Say:</b> ${i.extra || 0}</div>
+                            <div><b>Ödənilib:</b> ${i.paid ? i.paid.toFixed(2) : 0} ₼</div>
+                        </div>
+                        ${rawStr ? `<div style="font-size:11px; color:#666; padding:8px; background:#fff; border-radius:5px; border:1px solid #eee;"><b>Çəkilər:</b> ${rawStr}</div>` : ''}
+                    ` : `
+                        <div style="background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
+                            <div style="margin-bottom: 5px;"><b>Əməliyyat Növü:</b> ${typeName}</div>
+                            <div style="margin-bottom: 5px;"><b>Məbləğ:</b> <span class="paid">${Math.abs(i.paid || 0).toFixed(2)} ₼</span></div>
+                            <div style="margin-bottom: 5px;"><b>Qeyd:</b> ${i.extra || 'Yoxdur'}</div>
+                        </div>
+                    `}
+                    
+                    <div style="display: flex; gap: 8px; margin-top: 15px;">
+                        <button onclick="restoreItem('${i.id}')" style="flex: 1; background: var(--s); padding: 10px; font-size: 11px; color: white; border-radius: 8px; border:none; cursor:pointer;">BƏRPA ET</button>
+                        <button onclick="finalDelete('${i.id}')" style="flex: 1; background: var(--d); padding: 10px; font-size: 11px; color: white; border-radius: 8px; border:none; cursor:pointer;">TAM SİL</button>
+                        <button onclick="toggleTrashDetail(${index})" style="flex: 1; background: #636e72; padding: 10px; font-size: 11px; color: white; border-radius: 8px; border:none; cursor:pointer;">BAĞLA</button>
+                    </div>
+                </div>
+            </div>`;
+        });
+
+        container.innerHTML = html;
+
+    } catch (error) {
+        console.error("Zibil qutusu xətası:", error);
+        container.innerHTML = `<p style="padding:20px; text-align:center; color:var(--d);">Məlumatları yükləmək mümkün olmadı.</p>`;
+    }
+}
+    /* function ldTrash() {
         let trash = JSON.parse(localStorage.getItem(getStorageKey('trash_v7')) || "[]");
         let container = document.getElementById('trashTable');
         if (!trash.length) return container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Zibil qutusu boşdur. 🗑️</p>`;
@@ -938,14 +1028,55 @@ async function loadCompanyData() {
             </div>`;
         });
         container.innerHTML = html;
-    }
+    } */
 
     function toggleTrashDetail(index) {
         let el = document.getElementById(`trash-det-${index}`);
         el.style.display = el.style.display === "none" ? "block" : "none";
     }
+// Qeydi zibil qutusundan bərpa edib əsas siyahıya qaytarmaq
+async function restoreItem(id) {
+    try {
+        let { error } = await window.supabaseClient
+            .from('sales_history')
+            .update({ is_deleted: false })
+            .eq('id', id);
 
-    function restoreItem(index) {
+        if (error) throw error;
+
+        alert("Qeyd uğurla bərpa edildi!");
+        ldTrash(); // Zibil qutusunu yenilə
+        
+        if (typeof fetchSalesHistory === 'function') fetchSalesHistory();
+        if (typeof updateDash === 'function') updateDash();
+
+    } catch (error) {
+        console.error("Bərpa xətası:", error);
+        alert("Bərpa etmək mümkün olmadı: " + error.message);
+    }
+}
+
+// Qeydi bazadan tamamilə silmək
+async function finalDelete(id) {
+    if (!confirm("Bu qeyd bazadan tamamilə silinəcək və geri qaytarılmayacaq. Əminsinizmi?")) return;
+
+    try {
+        let { error } = await window.supabaseClient
+            .from('sales_history')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+
+        alert("Qeyd bazadan tamamilə silindi.");
+        ldTrash(); // Zibil qutusunu yenilə
+
+    } catch (error) {
+        console.error("Tam silmə xətası:", error);
+        alert("Silmək mümkün olmadı: " + error.message);
+    }
+}
+    /* function restoreItem(index) {
         let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
         let trash = JSON.parse(localStorage.getItem(getStorageKey('trash_v7')) || "[]");
         h.unshift(trash.splice(index, 1)[0]);
@@ -962,7 +1093,7 @@ async function loadCompanyData() {
             localStorage.setItem(getStorageKey('trash_v7'), JSON.stringify(trash));
             ldTrash();
         }
-    }
+    }  */
 
     function emptyTrash() {
         if(confirm("Zibil qutusu boşaldılsın?")) {
@@ -1061,7 +1192,8 @@ let saleData = {
         debt: debt,
         date: new Date().toISOString(),
         raw: weightsText,
-        type: 'sale'
+        type: 'sale',
+        is_deleted: false
     };
     // Supabase inteqrasiyası
   /*  if(window.supabaseClient) {
