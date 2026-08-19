@@ -1,4 +1,4 @@
-v2031.1<!DOCTYPE html>
+v2031.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1477,39 +1477,11 @@ function renderDashStats(s) {
     if (document.getElementById('d-count-all')) document.getElementById('d-count-all').innerText = s.allCount;
 }
 
-function clr() {
-
-    // LocalStorage-də saxlanılan müvəqqəti məlumatı silirik
-    localStorage.removeItem(getStorageKey('s_n'));
-
-    // Hesabla pəncərəsindəki bütün input elementlərini sıfırlayırıq
-    let inputs = document.querySelectorAll('#calcScreen input, .calc-container input, #saleForm input');
-    
-    if (inputs.length > 0) {
-        inputs.forEach(input => {
-            if (input.type === 'number' || input.type === 'text') {
-                input.value = '';
-            }
-        });
-    } else {
-        // ID-lərə uyğun fərdi təmizləmə
-        let ids = ['customerName', 'totalAmount', 'paidAmount', 'extraCount', 'calcName', 'calcTotal', 'calcPaid'];
-        ids.forEach(id => {
-            let el = document.getElementById(id);
-            if (el) el.value = '';
-        });
-    }
-
-    // Əgər ekranda yekun göstəricilər/yazılar varsa sıfırlayırıq
-    let displays = ['totalDisplay', 'debtDisplay', 'changeDisplay'];
-    displays.forEach(id => {
-        let el = document.getElementById(id);
-        if (el) el.innerText = '0.00 ₼';
-    });
-
-    // Kursoru birinci xanaya (Müştəri adına) fokuslayırıq
-    let firstInput = document.getElementById('customerName') || document.getElementById('calcName') || document.querySelector('input');
-    if (firstInput) firstInput.focus();
+function clr() { 
+    if(confirm("Təmizlənsin?")) { 
+        localStorage.removeItem(getStorageKey('s_n')); 
+      //  location.reload(); 
+    } 
 }
 async function clrH() { 
     if(confirm("Tarixçə silinsin?")) { 
