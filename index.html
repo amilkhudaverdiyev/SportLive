@@ -1,4 +1,4 @@
-v2030.1.4.1<!DOCTYPE html>
+v2030.1.5<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -494,20 +494,74 @@ function selectWelcomeCompany() {
     showMainApp();
 }
 
-function addNewCompanyFromWelcome() {
-        let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
-        if(!name) return;
-        let list = JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]');
-        if(list.includes(name)) return alert("Bu adla müəssisə artıq mövcuddur!");
-        
-        list.push(name);
-        localStorage.setItem('company_list', JSON.stringify(list));
+// 1. Yeni müəssisə yaradılması
+async function addNewCompanyFromWelcome() {
+    let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
+    if (!name) return;
+    
+    name = name.trim();
+    if (!name) return;
+
+    if (!window.supabaseClient) {
+        return alert("Supabase bağlantısı yoxdur!");
+    }
+
+    try {
+        // Əvvəlcə mövcudluğunu yoxlayırıq
+        let { data: existing, error: checkErr } = await window.supabaseClient
+            .from('companies')
+            .select('name')
+            .eq('name', name);
+
+        if (checkErr) {
+            console.error("Yoxlama xətası:", checkErr);
+        }
+
+        if (existing && existing.length > 0) {
+            return alert("Bu adla müəssisə artıq bazada mövcuddur!");
+        }
+
+        // 'companies' cədvəlinə əlavə edirik
+        let { data: insertedComp, error: compError } = await window.supabaseClient
+            .from('companies')
+            .insert([{ name: name }])
+            .select();
+
+        if (compError) {
+            console.error("Companies insert xətası:", compError);
+            alert("Müəssisə 'companies' cədvəlinə yazılmadı! (RLS icazələrini yoxlayın)");
+            return;
+        }
+
+        // 'sales_history' cədvəlinə ilkin sistem qeydi atırıq
+        let { error: salesError } = await window.supabaseClient
+            .from('sales_history')
+            .insert([{
+                company_name: name,
+                name: 'SİSTEM',
+                extra: 'MÜƏSSİSƏ YARADILDI',
+                type: 'system_init',
+                sum: 0, fire: 0, net: 0, total: 0, price: 0, paid: 0, debt: 0,
+                date: new Date().toLocaleString('az-AZ'),
+                raw: []
+            }]);
+
+        if (salesError) {
+            console.error("Sales history insert xətası:", salesError);
+        }
+
         currentCompany = name;
         localStorage.setItem('active_company', name);
-        initWelcomeScreen();
-        document.getElementById('welcomeCompanySelect').value = currentCompany;
+        
+        alert(`"${name}" müəssisəsi uğurla yaradıldı!`);
+        await initWelcomeScreen();
         showMainApp();
+
+    } catch (e) {
+        console.error("Kritik xəta:", e);
+        alert("Gözlənilməz xəta baş verdi!");
     }
+}
 function showMainApp() {
     document.getElementById('welcome-wrapper').style.display = 'none';
     document.getElementById('main-card').style.display = 'block';
