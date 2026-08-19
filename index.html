@@ -1,4 +1,4 @@
-v2031.3<!DOCTYPE html>
+v2031.3.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1478,26 +1478,31 @@ function renderDashStats(s) {
 }
 function clr() {
     if (confirm("Təmizlənsin?")) {
-        // LocalStorage-dən müvəqqəti yazını silirik
+        // 1. LocalStorage müvəqqəti məlumatı silirik
         if (typeof getStorageKey === 'function') {
             localStorage.removeItem(getStorageKey('s_n'));
         } else {
             localStorage.removeItem('s_n');
         }
 
-        // Hesabla pəncərəsindəki xanaları sıfırlayırıq
+        // 2. Hesabla pəncərəsi daxilində olan BÜTÜN inputları tapıb sıfırlayırıq
+        let allInputs = document.querySelectorAll('#calcScreen input, .calc-container input, #saleForm input, input[type="text"], input[type="number"]');
+        allInputs.forEach(input => {
+            input.value = '';
+        });
+
+        // 3. Xüsusi ID-lərə qarşı əlavə zəmanət təmizləməsi
         let ids = ['s_n', 's_t', 's_p', 's_e', 'customerName', 'totalAmount', 'paidAmount', 'extraCount', 'calcName', 'calcTotal', 'calcPaid'];
         ids.forEach(id => {
             let el = document.getElementById(id);
             if (el) el.value = '';
         });
 
-        // Kursoru birinci xanaya qaytarırıq
-        let firstInput = document.getElementById('s_n') || document.getElementById('customerName') || document.getElementById('calcName') || document.querySelector('input');
+        // 4. Kursoru ilk xanaya qaytarırıq
+        let firstInput = document.getElementById('s_n') || document.getElementById('customerName') || document.querySelector('input');
         if (firstInput) firstInput.focus();
     }
 }
-
 
 
 async function clrH() { 
