@@ -1,4 +1,4 @@
-v2030<!DOCTYPE html>
+v2030.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -315,24 +315,29 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON
 
 async function initWelcomeScreen() {
     let select = document.getElementById('welcomeCompanySelect');
+    if (!select) return;
+
     select.innerHTML = "<option>Yüklənir...</option>";
+    let companyList = [];
 
-    let companyList = ["Müəssisə 1"];
-
-    // Supabase-dən unikal müəssisə adlarını çəkirik
     if (window.supabaseClient) {
         try {
+            // Birbaşa 'companies' cədvəlini oxuyuruq
             let { data, error } = await window.supabaseClient
-                .from('sales_history')
-                .select('company_name');
+                .from('companies')
+                .select('name')
+                .order('name', { ascending: true });
 
             if (!error && data && data.length > 0) {
-                let uniqueCompanies = [...new Set(data.map(item => item.company_name).filter(Boolean))];
-                if (uniqueCompanies.length > 0) companyList = uniqueCompanies;
+                companyList = data.map(item => item.name);
             }
         } catch (e) {
             console.error("Müəssisələr çəkilərkən xəta:", e);
         }
+    }
+
+    if (companyList.length === 0) {
+        companyList = ["Müəssisə 1"];
     }
 
     select.innerHTML = "";
@@ -434,14 +439,59 @@ function selectWelcomeCompany() {
     showMainApp();
 }
 
-function addNewCompanyFromWelcome() {
+async function addNewCompanyFromWelcome() {
     let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
     if (!name) return;
-    currentCompany = name;
-    localStorage.setItem('active_company', name);
-    showMainApp();
-}
+    
+    name = name.trim();
+    if (!name) return;
 
+    if (window.supabaseClient) {
+        try {
+            // 1. 'companies' cədvəlində yoxlayırıq
+            let { data: existing } = await window.supabaseClient
+                .from('companies')
+                .select('name')
+                .eq('name', name)
+                .maybeSingle();
+
+            if (existing) {
+                return alert("Bu adla müəssisə artıq bazada mövcuddur!");
+            }
+
+            // 2. 'companies' cədvəlinə əlavə edirik
+            let { error: compError } = await window.supabaseClient
+                .from('companies')
+                .insert([{ name: name }]);
+
+            if (compError) throw compError;
+
+            // 3. Müəssisə satış etmədən də 'sales_history' sistemində aktiv olsun deyə ilkin qeyd atırıq
+            await window.supabaseClient
+                .from('sales_history')
+                .insert([{
+                    company_name: name,
+                    name: 'SİSTEM',
+                    extra: 'MÜƏSSİSƏ YARADILDI',
+                    type: 'system_init',
+                    sum: 0, fire: 0, net: 0, total: 0, price: 0, paid: 0, debt: 0,
+                    date: new Date().toLocaleString('az-AZ'),
+                    raw: []
+                }]);
+
+            currentCompany = name;
+            localStorage.setItem('active_company', name);
+            
+            alert(`"${name}" müəssisəsi uğurla yaradıldı!`);
+            await initWelcomeScreen();
+            showMainApp();
+
+        } catch (e) {
+            console.error("Müəssisə yaradılarkən xəta:", e);
+            alert("Xəta baş verdi! Supabase RLS icazələrini yoxlayın.");
+        }
+    }
+}
 function showMainApp() {
     document.getElementById('welcome-wrapper').style.display = 'none';
     document.getElementById('main-card').style.display = 'block';
