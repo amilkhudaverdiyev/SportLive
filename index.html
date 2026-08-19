@@ -1,4 +1,4 @@
-v2030.1.6.3<!DOCTYPE html>
+v2031<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1477,11 +1477,25 @@ function renderDashStats(s) {
     if (document.getElementById('d-count-all')) document.getElementById('d-count-all').innerText = s.allCount;
 }
 
-function clr() { 
-    if(confirm("Təmizlənsin?")) { 
-        localStorage.removeItem(getStorageKey('s_n')); 
-        location.reload(); 
-    } 
+function clr() {
+    if (confirm("Təmizlənsin?")) {
+        // 1. LocalStorage-dən müvəqqəti məlumatı silirik
+        localStorage.removeItem(getStorageKey('s_n'));
+
+        // 2. SƏHİFƏNİ YENİLƏMİRİK (location.reload() SİLİNDİ)
+        
+        // 3. Yalnız Hesabla pəncərəsindəki inputları sıfırlayırıq:
+        let nameInput = document.getElementById('customerNameInput') || document.getElementById('calcName');
+        let amountInput = document.getElementById('saleAmountInput') || document.getElementById('calcTotal');
+        let paidInput = document.getElementById('paidAmountInput') || document.getElementById('calcPaid');
+
+        if (nameInput) nameInput.value = '';
+        if (amountInput) amountInput.value = '';
+        if (paidInput) paidInput.value = '';
+
+        // Fokus yenidən ilk xanaya qaytarılır
+        if (nameInput) nameInput.focus();
+    }
 }
 
 async function clrH() { 
