@@ -1,4 +1,4 @@
-v2027<!DOCTYPE html>
+v2028<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -882,12 +882,16 @@ async function calc() {
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-   async function ldSales() {
+ async function ldSales() {
     let searchTerm = (document.getElementById('saleSearch') ? document.getElementById('saleSearch').value : "").toLowerCase();
     let container = document.getElementById('salesTable');
-    container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
+    if(!container) return;
+    
+    container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Yüklənir... 📦</p>`;
 
     let sales = [];
+
+    // 1. Supabase-dən məlumatları çəkirik
     if (window.supabaseClient && currentCompany) {
         try {
             let { data, error } = await window.supabaseClient
@@ -898,26 +902,105 @@ async function calc() {
                 .order('id', { ascending: false });
             
             if (!error && data) {
-                sales = data.filter(i => i.name.toLowerCase().includes(searchTerm));
+                sales = data.filter(i => (i.name || "").toLowerCase().includes(searchTerm));
             }
         } catch(e) {
             console.error("Satışları çəkərkən xəta:", e);
         }
     }
 
-    if (!sales.length) return container.innerHTML = `<p style="padding:20px; text-align:center;">Satış tapılmadı.</p>`;
-    
+    // Əgər Supabase boşdursa və ya xəta verərsə, lokal yaddaşdan oxuyuruq
+    if (!sales.length) {
+        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
+        sales = h.map((item, index) => ({ ...item, originalIndex: index }))
+                 .filter(i => (!i.type || i.type === 'sale') && (i.name || "").toLowerCase().includes(searchTerm));
+    }
+
+    if (!sales.length) {
+        container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Axtarışa uyğun satış tapılmadı. 📦</p>`;
+        return;
+    }
+
     let html = "";
-    sales.forEach((i) => {
-        let totalVal = parseFloat(i.total) || 0;
-        html += `<div style="background:#fff; margin-bottom:12px; border-radius:12px; border-left:5px solid var(--a); border:1px solid #eee; padding:15px;">
-            <div style="display:flex; justify-content:space-between;">
-                <div><b>${i.name}</b><br><small>${i.date}</small></div>
-                <div style="text-align:right;"><b>${totalVal.toFixed(2)} ₼</b><br><button onclick="deleteSale('${i.id}')" style="background:var(--d); padding:2px 6px; font-size:10px; margin-top:5px;">Sil</button></div>
+    sales.forEach((i, index) => {
+        let rowId = i.id ? `'${i.id}'` : i.originalIndex;
+        let toggleId = i.id ? `sale-det-sb-${i.id}` : `sale-det-${i.originalIndex}`;
+        
+        let sumVal = parseFloat(i.sum || i.totalWeight) || 0;
+        let fireVal = parseFloat(i.fire) || 0;
+        let netVal = parseFloat(i.net) || 0;
+        let priceVal = parseFloat(i.price) || 0;
+        let paidVal = parseFloat(i.paid) || 0;
+        let debtVal = parseFloat(i.debt) || 0;
+        let totalVal = parseFloat(i.total || i.totalSum) || 0;
+        let extraVal = parseInt(i.extra) || 0;
+        
+        // Çəkilər massivinin analizi (Mətn və ya massiv kimi gələ bilər)
+        let rawList = [];
+        if (Array.isArray(i.raw)) {
+            rawList = i.raw;
+        } else if (typeof i.raw === 'string' && i.raw.trim().length > 0) {
+            rawList = i.raw.split('\n').map(w => w.trim()).filter(w => w.length > 0);
+        }
+
+        html += `
+        <div style="background: #fff; margin-bottom: 12px; border-radius: 12px; border-left: 5px solid var(--a); box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; overflow: hidden;">
+            <div onclick="toggleSaleDetail('${toggleId}')" style="padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="background: linear-gradient(135deg, #ff4d4d, #d32f2f); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+                        ${index + 1}
+                    </div>
+                    <div>
+                        <div style="font-weight: bold; font-size: 15px;">${i.name}</div>
+                        <small style="opacity: 0.6;">${i.date ? new Date(i.date).toLocaleString('az-AZ') : ''}</small>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <div style="font-weight: bold; color: var(--d); font-size: 16px;">${totalVal.toFixed(2)} ₼</div>
+                    <small style="font-size: 10px; color: var(--a);">Ətraflı gör</small>
+                </div>
+            </div>
+            
+            <div id="${toggleId}" style="display: none; padding: 15px; background: #f9f9f9; border-top: 1px solid #eee; font-size: 13px; color: #333;">
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
+                    <div><b>Ümumi Çəki:</b> ${sumVal.toFixed(2)} kq</div>
+                    <div><b>Faiz (1%):</b> ${fireVal.toFixed(2)} kq</div>
+                    <div><b>Xalis Çəki:</b> ${netVal.toFixed(3)} kq</div>
+                    <div><b>Qiymət:</b> ${priceVal.toFixed(2)} ₼</div>
+                    <div><b>Əlavə Say:</b> ${extraVal}</div>
+                    <div><b>Ödənildi:</b> <span class="paid" style="color:var(--s); font-weight:bold;">${paidVal.toFixed(2)} ₼</span></div>
+                </div>
+
+                <div style="text-align: center; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px;">
+                    <div style="font-size: 11px; color: #888; margin-bottom: 2px;">BORC</div>
+                    <div class="${debtVal < 0 ? 'txt-credit' : 'txt-debt'}" style="font-size: 20px; font-weight: bold; color: ${debtVal < 0 ? 'var(--s)' : 'var(--d)'};">
+                        ${debtVal.toFixed(2)} ₼
+                    </div>
+                </div>
+                
+                ${rawList.length ? `
+                    <div style="font-size:12px; color:#444; padding:10px; background:#fff; border-radius:8px; border:1px solid #ddd;">
+                        <b style="display:block; margin-bottom:5px;">Çəkilər:</b>
+                        ${rawList.map((w, idx) => `<span style="display:inline-block; width:45%; margin-right:5%;">${idx + 1}. ${parseFloat(w).toFixed(2)} kq</span>`).join('')}
+                    </div>` : ''}
+                
+                <div style="display: flex; gap: 8px; margin-top: 15px;">
+                    <button onclick="editSale(${rowId})" style="flex: 1; background: var(--gold); color: #000; padding: 10px; font-size: 11px; border-radius: 8px; border:none; font-weight:bold; cursor:pointer;">DÜZƏLİŞ</button>
+                    <button onclick="deleteSale(${rowId})" style="flex: 1; background: var(--d); color: white; padding: 10px; font-size: 11px; border-radius: 8px; border:none; font-weight:bold; cursor:pointer;">SİL</button>
+                </div>
             </div>
         </div>`;
     });
+
     container.innerHTML = html;
+}
+
+// Kartı kliklədikdə açıb-bağlamaq üçün köməkçi funksiya
+function toggleSaleDetail(id) {
+    let el = document.getElementById(id);
+    if(el) {
+        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
+    }
 }
     async function ldPayments() {
     let container = document.getElementById('paymentsTable');
