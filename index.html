@@ -1,4 +1,4 @@
-v2033.3.1<!DOCTYPE html>
+v2033.4<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -441,7 +441,9 @@ async function renderGlobalDebts(companyList) {
 
     if (window.supabaseClient) {
         try {
-            let { data, error } = await window.supabaseClient.from('sales_history').select('*');
+            let { data, error } = await window.supabaseClient.from('sales_history')
+                .select('*')
+                .or('is_deleted.is.null,is_deleted.eq.false');
             if (!error && data) {
                 data.forEach(item => {
                     let nameKey = (item.name || "").toLowerCase().trim();
