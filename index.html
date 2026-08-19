@@ -1,4 +1,4 @@
-v2033.4.2<!DOCTYPE html>
+v2033.4.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1682,7 +1682,7 @@ async function updateDash() {
                 .from('sales_history')
                 .select('*')
                 .eq('company_name', currentCompany)
-                .or('is_deleted.is.null,is_deleted.eq.false');
+                .not('is_deleted', 'eq', true);
                
 
             if (!error && data) {
