@@ -1,4 +1,4 @@
-v2029.1.1<!DOCTYPE html>
+v2030<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -311,159 +311,167 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON
     let cur = {};
     let globalFilterType = 'all';
 
-    function initWelcomeScreen() {
-        let list = JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]');
-        let select = document.getElementById('welcomeCompanySelect');
-        select.innerHTML = "";
-        list.forEach(c => {
-            let opt = document.createElement('option');
-            opt.value = c;
-            opt.innerText = c;
-            if(c === currentCompany) opt.selected = true;
-            select.appendChild(opt);
-        });
+    // --- INITIALIZATION & WELCOME ---
 
-        renderGlobalDebts(list);
-    }
+async function initWelcomeScreen() {
+    let select = document.getElementById('welcomeCompanySelect');
+    select.innerHTML = "<option>Yüklənir...</option>";
 
-    function toggleGlobalDebts() {
-        let box = document.getElementById('globalDebtContainer');
-        let btn = document.getElementById('debtToggleBtn');
-        if (box.style.display === "none" || box.style.display === "") {
-            box.style.display = "block";
-            btn.innerText = "📋 ÜMUMİ BORCLARI GİZLƏT";
-            renderGlobalDebts(JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]'));
-        } else {
-            box.style.display = "none";
-            btn.innerText = "📋 ÜMUMİ BORCLARI GÖSTƏR";
-        }
-    }
+    let companyList = ["Müəssisə 1"];
 
-    function setGlobalFilter(type, btnEl) {
-        globalFilterType = type;
-        document.querySelectorAll('.g-filter-btn').forEach(b => {
-            b.style.background = '#dfe6e9';
-            b.style.color = 'var(--p)';
-        });
-        btnEl.style.background = 'var(--a)';
-        btnEl.style.color = 'white';
-        renderGlobalDebts(JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]'));
-    }
+    // Supabase-dən unikal müəssisə adlarını çəkirik
+    if (window.supabaseClient) {
+        try {
+            let { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('company_name');
 
-    function filterGlobalDebts() {
-        renderGlobalDebts(JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]'));
-    }
-
-    function renderGlobalDebts(companyList) {
-        let globalTotals = {};
-
-        companyList.forEach(comp => {
-            let history = JSON.parse(localStorage.getItem(`h_v7_${comp}`) || "[]");
-            history.forEach(item => {
-                let nameKey = item.name.toLowerCase().trim();
-                if(!globalTotals[nameKey]) {
-                    globalTotals[nameKey] = { originalName: item.name, sumDebt: 0 };
-                }
-                globalTotals[nameKey].sumDebt += item.debt;
-            });
-        });
-
-        let container = document.getElementById('globalDebtListContent');
-        let searchTerm = (document.getElementById('globalSearchInp') ? document.getElementById('globalSearchInp').value : "").toLowerCase();
-        let html = "";
-        let hasActiveDebt = false;
-        // Məbləğə görə böyükdən kiçiyə doğru sıralama (Mütləq rəqəmlə və ya birbaşa dəyərlə)
-        let sortedKeys = Object.keys(globalTotals).sort((a, b) => {
-            return globalTotals[b].sumDebt - globalTotals[a].sumDebt;
-        });
-
-        sortedKeys.forEach(key => {
-            
-        let item = globalTotals[key];
-            let debtVal = Math.round(item.sumDebt * 100) / 100;
-            
-            if(debtVal !== 0) {
-                let isCredit = debtVal < 0;
-                
-                // Filtrləmə yoxlamaları
-                if(globalFilterType === 'debt' && isCredit) return;
-                if(globalFilterType === 'credit' && !isCredit) return;
-                if(searchTerm && !item.originalName.toLowerCase().includes(searchTerm)) return;
-
-                hasActiveDebt = true;
-                let colorClass = isCredit ? 'txt-credit' : 'txt-debt';
-                html += `<div class="global-debt-item">
-                    <span style="font-weight: 500;">${item.originalName}</span>
-                    <span class="${colorClass}" style="color: ${isCredit ? 'var(--s)' : 'var(--d)'}; font-weight: bold;">${Math.abs(debtVal).toFixed(2)} ₼ ${isCredit ? '(+)' : '(-)'}</span>
-                </div>`;
+            if (!error && data && data.length > 0) {
+                let uniqueCompanies = [...new Set(data.map(item => item.company_name).filter(Boolean))];
+                if (uniqueCompanies.length > 0) companyList = uniqueCompanies;
             }
-        });
-
-        if(!hasActiveDebt) {
-            container.innerHTML = `<p style="padding:15px; text-align:center; color:#888; font-size:13px; margin:0;">Uyğun nəticə tapılmadı.</p>`;
-        } else {
-            container.innerHTML = html;
+        } catch (e) {
+            console.error("Müəssisələr çəkilərkən xəta:", e);
         }
     }
 
-    function selectWelcomeCompany() {
-        let select = document.getElementById('welcomeCompanySelect');
-        if(!select.value) return alert("Zəhmət olmasa müəssisə seçin!");
-        currentCompany = select.value;
-        localStorage.setItem('active_company', currentCompany);
-        showMainApp();
-    }
+    select.innerHTML = "";
+    companyList.forEach(c => {
+        let opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        if (c === currentCompany) opt.selected = true;
+        select.appendChild(opt);
+    });
 
-    function addNewCompanyFromWelcome() {
-        let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
-        if(!name) return;
-        let list = JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]');
-        if(list.includes(name)) return alert("Bu adla müəssisə artıq mövcuddur!");
-        
-        list.push(name);
-        localStorage.setItem('company_list', JSON.stringify(list));
-        currentCompany = name;
-        localStorage.setItem('active_company', name);
+    await renderGlobalDebts(companyList);
+}
+
+function toggleGlobalDebts() {
+    let box = document.getElementById('globalDebtContainer');
+    let btn = document.getElementById('debtToggleBtn');
+    if (box.style.display === "none" || box.style.display === "") {
+        box.style.display = "block";
+        btn.innerText = "📋 ÜMUMİ BORCLARI GİZLƏT";
         initWelcomeScreen();
-        document.getElementById('welcomeCompanySelect').value = currentCompany;
-        showMainApp();
+    } else {
+        box.style.display = "none";
+        btn.innerText = "📋 ÜMUMİ BORCLARI GÖSTƏR";
+    }
+}
+
+function setGlobalFilter(type, btnEl) {
+    globalFilterType = type;
+    document.querySelectorAll('.g-filter-btn').forEach(b => {
+        b.style.background = '#dfe6e9';
+        b.style.color = 'var(--p)';
+    });
+    btnEl.style.background = 'var(--a)';
+    btnEl.style.color = 'white';
+    initWelcomeScreen();
+}
+
+function filterGlobalDebts() {
+    initWelcomeScreen();
+}
+
+async function renderGlobalDebts(companyList) {
+    let container = document.getElementById('globalDebtListContent');
+    let globalTotals = {};
+
+    if (window.supabaseClient) {
+        try {
+            let { data, error } = await window.supabaseClient.from('sales_history').select('*');
+            if (!error && data) {
+                data.forEach(item => {
+                    let nameKey = (item.name || "").toLowerCase().trim();
+                    if (!nameKey) return;
+                    if (!globalTotals[nameKey]) {
+                        globalTotals[nameKey] = { originalName: item.name, sumDebt: 0 };
+                    }
+                    globalTotals[nameKey].sumDebt += (parseFloat(item.debt) || 0);
+                });
+            }
+        } catch (e) {
+            console.error("Qlobal borclar çəkilərkən xəta:", e);
+        }
     }
 
-    function showMainApp() {
-        document.getElementById('welcome-wrapper').style.display = 'none';
-        document.getElementById('main-card').style.display = 'block';
-        
-        document.getElementById('activeCompanyName').innerText = currentCompany;
-        
-        document.getElementById('res').style.display = 'none';
-        document.getElementById('wb').style.display = 'none';
-        document.getElementById('sb').style.display = 'none';
-        
-        loadCompanyData();
+    let searchTerm = (document.getElementById('globalSearchInp') ? document.getElementById('globalSearchInp').value : "").toLowerCase();
+    let html = "";
+    let hasActiveDebt = false;
 
-        document.getElementById('n').value = localStorage.getItem(getStorageKey('s_n')) || '';
-        document.getElementById('e').value = localStorage.getItem(getStorageKey('s_e')) || '';
-        document.getElementById('p').value = localStorage.getItem(getStorageKey('s_p')) || '';
-        document.getElementById('l').value = localStorage.getItem(getStorageKey('s_l')) || '';
-    }
+    let sortedKeys = Object.keys(globalTotals).sort((a, b) => globalTotals[b].sumDebt - globalTotals[a].sumDebt);
 
-    function logoutToWelcome() {
-        document.getElementById('main-card').style.display = 'none';
-        document.getElementById('welcome-wrapper').style.display = 'flex';
-        document.getElementById('globalDebtContainer').style.display = 'none';
-        document.getElementById('debtToggleBtn').innerText = "📋 ÜMUMİ BORCLARI GÖSTƏR";
-        initWelcomeScreen();
-    }
+    sortedKeys.forEach(key => {
+        let item = globalTotals[key];
+        let debtVal = Math.round(item.sumDebt * 100) / 100;
 
-    function loadCompanyData() {
-        mayaItems = JSON.parse(localStorage.getItem(`maya_items_${currentCompany}`) || "[]");
-        renderMayaTable();
-        calculateProfit();
-        updateDash();
-        if(document.getElementById('h_sales').style.display === 'block') ldSales();
-        if(document.getElementById('h_payments').style.display === 'block') ldPayments();
-        if(document.getElementById('b').style.display === 'block') ldB();
-    }
+        if (debtVal !== 0) {
+            let isCredit = debtVal < 0;
+
+            if (globalFilterType === 'debt' && isCredit) return;
+            if (globalFilterType === 'credit' && !isCredit) return;
+            if (searchTerm && !item.originalName.toLowerCase().includes(searchTerm)) return;
+
+            hasActiveDebt = true;
+            let colorClass = isCredit ? 'txt-credit' : 'txt-debt';
+            html += `<div class="global-debt-item">
+                <span style="font-weight: 500;">${item.originalName}</span>
+                <span class="${colorClass}" style="color: ${isCredit ? 'var(--s)' : 'var(--d)'}; font-weight: bold;">${Math.abs(debtVal).toFixed(2)} ₼ ${isCredit ? '(+)' : '(-)'}</span>
+            </div>`;
+        }
+    });
+
+    container.innerHTML = hasActiveDebt ? html : `<p style="padding:15px; text-align:center; color:#888; font-size:13px; margin:0;">Uyğun nəticə tapılmadı.</p>`;
+}
+
+function selectWelcomeCompany() {
+    let select = document.getElementById('welcomeCompanySelect');
+    if (!select.value) return alert("Zəhmət olmasa müəssisə seçin!");
+    currentCompany = select.value;
+    localStorage.setItem('active_company', currentCompany);
+    showMainApp();
+}
+
+function addNewCompanyFromWelcome() {
+    let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
+    if (!name) return;
+    currentCompany = name;
+    localStorage.setItem('active_company', name);
+    showMainApp();
+}
+
+function showMainApp() {
+    document.getElementById('welcome-wrapper').style.display = 'none';
+    document.getElementById('main-card').style.display = 'block';
+    document.getElementById('activeCompanyName').innerText = currentCompany;
+
+    document.getElementById('res').style.display = 'none';
+    document.getElementById('wb').style.display = 'none';
+    document.getElementById('sb').style.display = 'none';
+
+    loadCompanyData();
+}
+
+function logoutToWelcome() {
+    document.getElementById('main-card').style.display = 'none';
+    document.getElementById('welcome-wrapper').style.display = 'flex';
+    document.getElementById('globalDebtContainer').style.display = 'none';
+    document.getElementById('debtToggleBtn').innerText = "📋 ÜMUMİ BORCLARI GÖSTƏR";
+    initWelcomeScreen();
+}
+
+async function loadCompanyData() {
+    await updateDash();
+    let hSales = document.getElementById('h_sales');
+    let hPayments = document.getElementById('h_payments');
+    let b = document.getElementById('b');
+
+    if (hSales && hSales.style.display === 'block') await ldSales();
+    if (hPayments && hPayments.style.display === 'block') await ldPayments();
+    if (b && b.style.display === 'block') await ldB();
+}
 
     function getStorageKey(type) {
         return `${type}_${currentCompany}`;
