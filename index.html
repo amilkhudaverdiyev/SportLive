@@ -1,4 +1,4 @@
-v2030.1<!DOCTYPE html>
+v2030.1.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -313,29 +313,65 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON
 
     // --- INITIALIZATION & WELCOME ---
 
+// Bütün müəssisələri (həm köhnə sales_history, həm yeni companies) bir araya gətirən tam funksiya
 async function initWelcomeScreen() {
     let select = document.getElementById('welcomeCompanySelect');
     if (!select) return;
 
     select.innerHTML = "<option>Yüklənir...</option>";
-    let companyList = [];
+    
+    // Unikal adları böyük-kiçik hərf fərqini nəzərə alaraq saxlamaq üçün obyekt
+    let companiesMap = {}; 
 
     if (window.supabaseClient) {
         try {
-            // Birbaşa 'companies' cədvəlini oxuyuruq
-            let { data, error } = await window.supabaseClient
+            // 1. 'companies' cədvəlindən bütün müəssisələri çəkirik
+            let { data: compData, error: cErr } = await window.supabaseClient
                 .from('companies')
-                .select('name')
-                .order('name', { ascending: true });
+                .select('name');
 
-            if (!error && data && data.length > 0) {
-                companyList = data.map(item => item.name);
+            if (!cErr && compData) {
+                compData.forEach(item => {
+                    if (item.name) {
+                        let trimmedName = item.name.trim();
+                        let lowerKey = trimmedName.toLowerCase();
+                        if (!companiesMap[lowerKey]) {
+                            companiesMap[lowerKey] = trimmedName;
+                        }
+                    }
+                });
+            } else if (cErr) {
+                console.error("Companies cədvəli oxunarkən xəta:", cErr);
             }
+
+            // 2. 'sales_history' cədvəlindən əvvəlcədən olan müəssisə adlarını çəkirik
+            let { data: salesData, error: sErr } = await window.supabaseClient
+                .from('sales_history')
+                .select('company_name');
+
+            if (!sErr && salesData) {
+                salesData.forEach(item => {
+                    if (item.company_name) {
+                        let trimmedName = item.company_name.trim();
+                        let lowerKey = trimmedName.toLowerCase();
+                        if (!companiesMap[lowerKey]) {
+                            companiesMap[lowerKey] = trimmedName;
+                        }
+                    }
+                });
+            } else if (sErr) {
+                console.error("Sales history oxunarkən xəta:", sErr);
+            }
+
         } catch (e) {
-            console.error("Müəssisələr çəkilərkən xəta:", e);
+            console.error("Müəssisələr çəkilərkən ümumi xəta:", e);
         }
     }
 
+    // Əldə olunan müəssisə adlarını əlifba sırası ilə sıralayırıq
+    let companyList = Object.values(companiesMap).sort();
+
+    // Əgər bazada ümumiyyətlə heç nə tapılmazsa
     if (companyList.length === 0) {
         companyList = ["Müəssisə 1"];
     }
