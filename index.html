@@ -494,51 +494,20 @@ function selectWelcomeCompany() {
     showMainApp();
 }
 
-// 1. Yeni müəssisə yaradılması - YALNIZ 'companies' cədvəlinə düşür (sales_history-yə düşmür)
-async function addNewCompanyFromWelcome() {
-    let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
-    if (!name) return;
-    
-    name = name.trim();
-    if (!name) return;
-
-    if (!window.supabaseClient) {
-        return alert("Supabase bağlantısı yoxdur!");
-    }
-
-    try {
-        // Əvvəlcə 'companies' cədvəlində olub-olmadığını yoxlayırıq
-        let { data: existing, error: checkErr } = await window.supabaseClient
-            .from('companies')
-            .select('name')
-            .ilike('name', name);
-
-        if (existing && existing.length > 0) {
-            return alert("Bu adla müəssisə artıq bazada mövcuddur!");
-        }
-
-        // Yalnız 'companies' cədvəlinə əlavə edirik
-        let { error: compError } = await window.supabaseClient
-            .from('companies')
-            .insert([{ name: name }]);
-
-        if (compError) {
-            console.error("Companies insert xətası:", compError);
-            return alert("Müəssisə yaradılarkən xəta baş verdi!");
-        }
-
+function addNewCompanyFromWelcome() {
+        let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
+        if(!name) return;
+        let list = JSON.parse(localStorage.getItem('company_list') || '["Müəssisə 1"]');
+        if(list.includes(name)) return alert("Bu adla müəssisə artıq mövcuddur!");
+        
+        list.push(name);
+        localStorage.setItem('company_list', JSON.stringify(list));
         currentCompany = name;
         localStorage.setItem('active_company', name);
-        
-        alert("${name}" müəssisəsi uğurla yaradıldı!);
-        await initWelcomeScreen();
+        initWelcomeScreen();
+        document.getElementById('welcomeCompanySelect').value = currentCompany;
         showMainApp();
-
-    } catch (e) {
-        console.error("Müəssisə yaradılarkən xəta:", e);
-        alert("Xəta baş verdi!");
     }
-}
 function showMainApp() {
     document.getElementById('welcome-wrapper').style.display = 'none';
     document.getElementById('main-card').style.display = 'block';
