@@ -1,4 +1,4 @@
-v2031.2<!DOCTYPE html>
+v2031.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1476,13 +1476,30 @@ function renderDashStats(s) {
     if (document.getElementById('d-debt-all')) document.getElementById('d-debt-all').innerText = s.allDebt.toFixed(2) + " ₼";
     if (document.getElementById('d-count-all')) document.getElementById('d-count-all').innerText = s.allCount;
 }
+function clr() {
+    if (confirm("Təmizlənsin?")) {
+        // LocalStorage-dən müvəqqəti yazını silirik
+        if (typeof getStorageKey === 'function') {
+            localStorage.removeItem(getStorageKey('s_n'));
+        } else {
+            localStorage.removeItem('s_n');
+        }
 
-function clr() { 
-    if(confirm("Təmizlənsin?")) { 
-        localStorage.removeItem(getStorageKey('s_n')); 
-      //  location.reload(); 
-    } 
+        // Hesabla pəncərəsindəki xanaları sıfırlayırıq
+        let ids = ['s_n', 's_t', 's_p', 's_e', 'customerName', 'totalAmount', 'paidAmount', 'extraCount', 'calcName', 'calcTotal', 'calcPaid'];
+        ids.forEach(id => {
+            let el = document.getElementById(id);
+            if (el) el.value = '';
+        });
+
+        // Kursoru birinci xanaya qaytarırıq
+        let firstInput = document.getElementById('s_n') || document.getElementById('customerName') || document.getElementById('calcName') || document.querySelector('input');
+        if (firstInput) firstInput.focus();
+    }
 }
+
+
+
 async function clrH() { 
     if(confirm("Tarixçə silinsin?")) { 
         localStorage.removeItem(getStorageKey('h_v7')); 
