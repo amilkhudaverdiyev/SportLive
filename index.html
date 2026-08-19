@@ -1,4 +1,4 @@
-v2031<!DOCTYPE html>
+v2031.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1478,26 +1478,39 @@ function renderDashStats(s) {
 }
 
 function clr() {
-    if (confirm("Təmizlənsin?")) {
-        // 1. LocalStorage-dən müvəqqəti məlumatı silirik
-        localStorage.removeItem(getStorageKey('s_n'));
 
-        // 2. SƏHİFƏNİ YENİLƏMİRİK (location.reload() SİLİNDİ)
-        
-        // 3. Yalnız Hesabla pəncərəsindəki inputları sıfırlayırıq:
-        let nameInput = document.getElementById('customerNameInput') || document.getElementById('calcName');
-        let amountInput = document.getElementById('saleAmountInput') || document.getElementById('calcTotal');
-        let paidInput = document.getElementById('paidAmountInput') || document.getElementById('calcPaid');
+    // LocalStorage-də saxlanılan müvəqqəti məlumatı silirik
+    localStorage.removeItem(getStorageKey('s_n'));
 
-        if (nameInput) nameInput.value = '';
-        if (amountInput) amountInput.value = '';
-        if (paidInput) paidInput.value = '';
-
-        // Fokus yenidən ilk xanaya qaytarılır
-        if (nameInput) nameInput.focus();
+    // Hesabla pəncərəsindəki bütün input elementlərini sıfırlayırıq
+    let inputs = document.querySelectorAll('#calcScreen input, .calc-container input, #saleForm input');
+    
+    if (inputs.length > 0) {
+        inputs.forEach(input => {
+            if (input.type === 'number' || input.type === 'text') {
+                input.value = '';
+            }
+        });
+    } else {
+        // ID-lərə uyğun fərdi təmizləmə
+        let ids = ['customerName', 'totalAmount', 'paidAmount', 'extraCount', 'calcName', 'calcTotal', 'calcPaid'];
+        ids.forEach(id => {
+            let el = document.getElementById(id);
+            if (el) el.value = '';
+        });
     }
-}
 
+    // Əgər ekranda yekun göstəricilər/yazılar varsa sıfırlayırıq
+    let displays = ['totalDisplay', 'debtDisplay', 'changeDisplay'];
+    displays.forEach(id => {
+        let el = document.getElementById(id);
+        if (el) el.innerText = '0.00 ₼';
+    });
+
+    // Kursoru birinci xanaya (Müştəri adına) fokuslayırıq
+    let firstInput = document.getElementById('customerName') || document.getElementById('calcName') || document.querySelector('input');
+    if (firstInput) firstInput.focus();
+}
 async function clrH() { 
     if(confirm("Tarixçə silinsin?")) { 
         localStorage.removeItem(getStorageKey('h_v7')); 
