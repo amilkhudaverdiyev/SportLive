@@ -1,4 +1,4 @@
-v2032.2.2.1<!DOCTYPE html>
+v2032.2.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1102,7 +1102,7 @@ let saleData = {
             } else {
                 // **Əgər yeni satışdısa - INSERT et**
                 let { error } = await window.supabaseClient
-                    .from('Sales_history')
+                    .from('sales_history')
                     .insert([saleData]);
 
                 if (error) throw error;
