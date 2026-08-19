@@ -1,4 +1,4 @@
-v2024<!DOCTYPE html>
+v2025<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -951,35 +951,120 @@ async function calc() {
         updateDash();
         alert("Əməliyyat qeyd olundu.");
     }
+async function updateDash() {
+    let todayIso = new Date().toISOString().split('T')[0];
+    let todayLocal = new Date().toLocaleDateString('az-AZ');
 
-    function updateDash() {
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        let today = new Date().toLocaleDateString('az-AZ');
-        let stats = { todaySale: 0, todayCash: 0, todayCount: 0, allSale: 0, allDebt: 0, allCount: 0 };
-        h.forEach(i => {
-            if(i.type === 'sale') { stats.allSale += i.total; stats.allCount += parseInt(i.extra) || 0; }
-            stats.allDebt += i.debt;
-            if(i.date && i.date.includes(today)) {
-                if(i.type === 'sale') { stats.todaySale += i.total; stats.todayCount += parseInt(i.extra) || 0; }
-                stats.todayCash += i.paid;
+    let stats = { todaySale: 0, todayCash: 0, todayCount: 0, allSale: 0, allDebt: 0, allCount: 0 };
+
+    // 1. Əvvəlcə Lokal Yaddaşdan məlumatları hesabla
+    let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
+    h.forEach(i => {
+        let isSale = !i.type || i.type === 'sale';
+        let totalVal = parseFloat(i.total || i.totalSum) || 0;
+        let paidVal = parseFloat(i.paid) || 0;
+        let debtVal = parseFloat(i.debt) || 0;
+        let countVal = parseInt(i.extra) || 0;
+
+        if (isSale) { 
+            stats.allSale += totalVal; 
+            stats.allCount += countVal; 
+        }
+        stats.allDebt += debtVal;
+
+        if (i.date && (i.date.includes(todayLocal) || i.date.startsWith(todayIso))) {
+            if (isSale) { 
+                stats.todaySale += totalVal; 
+                stats.todayCount += countVal; 
             }
-        });
-        document.getElementById('d-sale-t').innerText = stats.todaySale.toFixed(2) + " ₼";
-        document.getElementById('d-cash-t').innerText = stats.todayCash.toFixed(2) + " ₼";
-        document.getElementById('d-count-t').innerText = stats.todayCount;
-        document.getElementById('d-sale-all').innerText = stats.allSale.toFixed(2) + " ₼";
-        document.getElementById('d-debt-all').innerText = stats.allDebt.toFixed(2) + " ₼";
-        document.getElementById('d-count-all').innerText = stats.allCount;
-    }
+            stats.todayCash += paidVal;
+        }
+    });
 
-    function clr() { if(confirm("Təmizlənsin?")) { localStorage.removeItem(getStorageKey('s_n')); location.reload(); } }
-    function clrH() { if(confirm("Tarixçə zibilə atılsın?")) { localStorage.removeItem(getStorageKey('h_v7')); ldSales(); updateDash(); } }
-    
-    function toggleDark() {
-        document.body.classList.toggle('dark-mode');
-        localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    // İnterfeysi lokal məlumatlarla yenilə
+    renderDashStats(stats);
+
+    // 2. Supabase bazasından məlumatları canlı çək və paneli sinxronlaşdır
+    if (window.supabaseClient && currentCompany) {
+        try {
+            const { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('company_name', currentCompany);
+
+            if (!error && data) {
+                let sbStats = { todaySale: 0, todayCash: 0, todayCount: 0, allSale: 0, allDebt: 0, allCount: 0 };
+
+                data.forEach(i => {
+                    let isSale = !i.type || i.type === 'sale';
+                    let totalVal = parseFloat(i.total) || 0;
+                    let paidVal = parseFloat(i.paid) || 0;
+                    let debtVal = parseFloat(i.debt) || 0;
+                    let countVal = parseInt(i.extra) || 0;
+
+                    if (isSale) { 
+                        sbStats.allSale += totalVal; 
+                        sbStats.allCount += countVal; 
+                    }
+                    sbStats.allDebt += debtVal;
+
+                    if (i.date && (i.date.startsWith(todayIso) || i.date.includes(todayLocal))) {
+                        if (isSale) { 
+                            sbStats.todaySale += totalVal; 
+                            sbStats.todayCount += countVal; 
+                        }
+                        sbStats.todayCash += paidVal;
+                    }
+                });
+
+                renderDashStats(sbStats);
+            }
+        } catch (e) {
+            console.error("Paneli yeniləyərkən Supabase xətası:", e);
+        }
     }
-    if (localStorage.getItem('darkMode') === 'true') document.body.classList.contains('dark-mode') || document.body.classList.add('dark-mode');
-</script>
+}
+
+function renderDashStats(s) {
+    if (document.getElementById('d-sale-t')) document.getElementById('d-sale-t').innerText = s.todaySale.toFixed(2) + " ₼";
+    if (document.getElementById('d-cash-t')) document.getElementById('d-cash-t').innerText = s.todayCash.toFixed(2) + " ₼";
+    if (document.getElementById('d-count-t')) document.getElementById('d-count-t').innerText = s.todayCount;
+    if (document.getElementById('d-sale-all')) document.getElementById('d-sale-all').innerText = s.allSale.toFixed(2) + " ₼";
+    if (document.getElementById('d-debt-all')) document.getElementById('d-debt-all').innerText = s.allDebt.toFixed(2) + " ₼";
+    if (document.getElementById('d-count-all')) document.getElementById('d-count-all').innerText = s.allCount;
+}
+
+function clr() { 
+    if(confirm("Təmizlənsin?")) { 
+        localStorage.removeItem(getStorageKey('s_n')); 
+        location.reload(); 
+    } 
+}
+
+async function clrH() { 
+    if(confirm("Tarixçə silinsin?")) { 
+        localStorage.removeItem(getStorageKey('h_v7')); 
+        
+        if (window.supabaseClient && currentCompany) {
+            await window.supabaseClient
+                .from('sales_history')
+                .delete()
+                .eq('company_name', currentCompany);
+        }
+        
+        if (typeof ldSales === 'function') ldSales(); 
+        updateDash(); 
+    } 
+}
+
+function toggleDark() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+}
+
+if (localStorage.getItem('darkMode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
+  </script>
 </body>
 </html>
