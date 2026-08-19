@@ -1,4 +1,4 @@
-v2033.1<!DOCTYPE html>
+v2033.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -891,7 +891,13 @@ async function loadCompanyData() {
 
         // Siyahını yenilə
         if (typeof fetchSalesHistory === 'function') {
-            fetchSalesHistory();
+            await fetchSalesHistory(); // Əgər bu funksiya async-dirsə, 'await' əlavə edin
+        }
+        
+        // Ekranı təzələyən funksiya
+        if (typeof ldSales === 'function') {
+            ldSales(); 
+        }
         }
         if (typeof updateDash === 'function') {
             updateDash();
