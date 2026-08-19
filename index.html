@@ -1,4 +1,4 @@
-v2032.1<!DOCTYPE html>
+v2032.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -881,7 +881,7 @@ async function loadCompanyData() {
 
     try {
         // 1. Supabase-dən həmin ID-yə uyğun məlumatı çəkirik
-        const { data: item, error } = await supabase
+        const { data: item, error } = await supabaseClient
             .from('sales_history') // Cədvəl adınızı bura yazın (məsələn: 'sales' və ya 'satislar')
             .select('*')
             .eq('id', id)
