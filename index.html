@@ -1,4 +1,4 @@
-v2033.2<!DOCTYPE html>
+v2033.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1338,6 +1338,7 @@ let saleData = {
                 .select('*')
                 .eq('company_name', currentCompany)
                 .eq('type', 'sale')
+                .or('is_deleted.is.null,is_deleted.eq.false')
                 .order('id', { ascending: false });
             
             if (!error && data) {
