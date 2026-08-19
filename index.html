@@ -1,4 +1,4 @@
-v2032.2.1<!DOCTYPE html>
+v2032.2.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1048,7 +1048,21 @@ async function calc() {
     let totalSum = netWeight * price;
     let debt = totalSum - paid;
     let currentDateStr = new Date().toLocaleString('sv-SE').replace('T', ' ');
-
+let saleData = { 
+        company_name: currentCompany, 
+        name: name, 
+        extra: extra,
+        sum: totalWeight,
+        fire: fire,
+        net: netWeight,
+        total: totalSum, 
+        price: price, 
+        paid: paid, 
+        debt: debt,
+        date: new Date().toISOString(),
+        raw: weightsText,
+        type: 'sale'
+    };
     // Supabase inteqrasiyası
   /*  if(window.supabaseClient) {
         try {
