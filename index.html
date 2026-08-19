@@ -1,4 +1,4 @@
-v2026<!DOCTYPE html>
+v2027<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -882,34 +882,74 @@ async function calc() {
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
 
-    function ldSales() {
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        let searchTerm = (document.getElementById('saleSearch') ? document.getElementById('saleSearch').value : "").toLowerCase();
-        let sales = h.map((item, index) => ({...item, originalIndex: index})).filter(i => i.type === 'sale' && i.name.toLowerCase().includes(searchTerm));
-        let container = document.getElementById('salesTable');
-        if (!sales.length) return container.innerHTML = `<p style="padding:20px; text-align:center;">Satış tapılmadı.</p>`;
-        let html = "";
-        sales.forEach((i, index) => {
-            html += `<div style="background:#fff; margin-bottom:12px; border-radius:12px; border-left:5px solid var(--a); border:1px solid #eee; padding:15px;">
-                <div style="display:flex; justify-content:space-between;">
-                    <div><b>${i.name}</b><br><small>${i.date}</small></div>
-                    <div style="text-align:right;"><b>${i.total.toFixed(2)} ₼</b><br><button onclick="deleteSale(${i.originalIndex})" style="background:var(--d); padding:2px 6px; font-size:10px; margin-top:5px;">Sil</button></div>
-                </div>
-            </div>`;
-        });
-        container.innerHTML = html;
+   async function ldSales() {
+    let searchTerm = (document.getElementById('saleSearch') ? document.getElementById('saleSearch').value : "").toLowerCase();
+    let container = document.getElementById('salesTable');
+    container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
+
+    let sales = [];
+    if (window.supabaseClient && currentCompany) {
+        try {
+            let { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('company_name', currentCompany)
+                .eq('type', 'sale')
+                .order('id', { ascending: false });
+            
+            if (!error && data) {
+                sales = data.filter(i => i.name.toLowerCase().includes(searchTerm));
+            }
+        } catch(e) {
+            console.error("Satışları çəkərkən xəta:", e);
+        }
     }
 
-    function ldPayments() {
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        let payments = h.map((item, index) => ({...item, originalIndex: index})).filter(i => i.type === 'payment' || i.type === 'refund');
-        let html = payments.length ? `<table><tr><th>Alıcı / Tarix</th><th>Məbləğ</th><th>Əməl</th></tr>` : `<p style="padding:20px; text-align:center;">Ödəniş yoxdur.</p>`;
-        payments.forEach(i => {
-            html += `<tr><td><b>${i.name}</b><br><small>${i.date}</small></td><td class="paid">${Math.abs(i.paid).toFixed(2)} ₼</td><td><button onclick="deleteSale(${i.originalIndex})" style="background:var(--d); padding:2px 6px;">Sil</button></td></tr>`;
-        });
-        document.getElementById('paymentsTable').innerHTML = html + (payments.length ? "</table>" : "");
+    if (!sales.length) return container.innerHTML = `<p style="padding:20px; text-align:center;">Satış tapılmadı.</p>`;
+    
+    let html = "";
+    sales.forEach((i) => {
+        let totalVal = parseFloat(i.total) || 0;
+        html += `<div style="background:#fff; margin-bottom:12px; border-radius:12px; border-left:5px solid var(--a); border:1px solid #eee; padding:15px;">
+            <div style="display:flex; justify-content:space-between;">
+                <div><b>${i.name}</b><br><small>${i.date}</small></div>
+                <div style="text-align:right;"><b>${totalVal.toFixed(2)} ₼</b><br><button onclick="deleteSale('${i.id}')" style="background:var(--d); padding:2px 6px; font-size:10px; margin-top:5px;">Sil</button></div>
+            </div>
+        </div>`;
+    });
+    container.innerHTML = html;
+}
+    async function ldPayments() {
+    let container = document.getElementById('paymentsTable');
+    container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
+
+    let payments = [];
+    if (window.supabaseClient && currentCompany) {
+        try {
+            let { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('*')
+                .eq('company_name', currentCompany)
+                .in('type', ['payment', 'refund'])
+                .order('id', { ascending: false });
+
+            if (!error && data) {
+                payments = data;
+            }
+        } catch(e) {
+            console.error("Ödənişləri çəkərkən xəta:", e);
+        }
     }
 
+    if (!payments.length) return container.innerHTML = `<p style="padding:20px; text-align:center;">Ödəniş yoxdur.</p>`;
+    
+    let html = `<table><tr><th>Alıcı / Tarix</th><th>Məbləğ</th><th>Əməl</th></tr>`;
+    payments.forEach(i => {
+        let paidVal = Math.abs(parseFloat(i.paid) || 0);
+        html += `<tr><td><b>${i.name}</b><br><small>${i.date}</small></td><td class="paid">${paidVal.toFixed(2)} ₼</td><td><button onclick="deleteSale('${i.id}')" style="background:var(--d); padding:2px 6px;">Sil</button></td></tr>`;
+    });
+    container.innerHTML = html + "</table>";
+}
     function ldB() {
         let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
         let totals = {};
