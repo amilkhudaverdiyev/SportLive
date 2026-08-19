@@ -1,4 +1,4 @@
-v2035/2<!DOCTYPE html>
+v2035/3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -442,8 +442,7 @@ function filterGlobalDebts() {
     if (window.supabaseClient) {
         try {
             let { data, error } = await window.supabaseClient.from('sales_history')
-                .select('*')
-                .or('is_deleted.is.null,is_deleted.eq.false');
+                .select('*');
             if (!error && data) {
                 data.forEach(item => {
                     let nameKey = (item.name || "").toLowerCase().trim();
