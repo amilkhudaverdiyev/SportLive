@@ -1,4 +1,4 @@
-v2030.1.6.1<!DOCTYPE html>
+v2030.1.6.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -740,13 +740,13 @@ async function loadCompanyData() {
         calculateProfit();
     }
 
-   async function openCheckModal() {
+  async function openCheckModal() {
     let checkContent = document.getElementById('checkContent');
     let checkModal = document.getElementById('checkModal');
     
     if (!checkContent || !checkModal) return;
 
-    // Yüklənir mesajı göstəririk
+    // Yüklənir mesajı
     checkContent.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Bugünkü əməliyyatlar yüklənir...</p>`;
     checkModal.style.display = 'flex';
 
@@ -756,17 +756,15 @@ async function loadCompanyData() {
     }
 
     try {
-        // Bugünü ISO formatında tapırıq (YYYY-MM-DD)
-        let todayISO = new Date().toISOString().split('T')[0];
+        // Bugünün tarixini yerli formatda alırıq (məsələn: 19.08.2026)
+        let todayLocale = new Date().toLocaleDateString('az-AZ');
 
-        // 1. Yalnız aktiv müəssisəyə və bugünkü tarixə aid satışları Supabase-dən çəkirik
-        let { data: todayItems, error } = await window.supabaseClient
+        // 1. Şərtləri SQL tərəfində ISO ilə filtrləmək `date` sütununuz text/locale formatındadırsa xəta verir.
+        // Məlumatı müəssisəyə görə çəkib, JS tərəfində təhlükəsiz filtrləyirik.
+        let { data: allItems, error } = await window.supabaseClient
             .from('sales_history')
             .select('*')
-            .eq('company_name', currentCompany)
-            .gte('date', todayISO + 'T00:00:00')
-            .lte('date', todayISO + 'T23:59:59')
-            .order('date', { ascending: false });
+            .eq('company_name', currentCompany);
 
         if (error) {
             console.error("openCheckModal Supabase xətası:", error);
@@ -774,10 +772,14 @@ async function loadCompanyData() {
             return;
         }
 
-        todayItems = todayItems || [];
+        allItems = allItems || [];
 
-        // Süni 'system_init' qeydlərini filtrləyirik
-        todayItems = todayItems.filter(i => i.type !== 'system_init');
+        // 2. Bugünkü qeydləri filtrləyirik ('system_init' istisna olunur)
+        let todayItems = allItems.filter(i => {
+            if (i.type === 'system_init') return false;
+            if (!i.date) return false;
+            return i.date.includes(todayLocale);
+        });
 
         // Satışları süzürük
         let todaySales = todayItems.filter(i => i.type === 'sale');
@@ -795,10 +797,10 @@ async function loadCompanyData() {
                 <b style="font-size:12px; color:#636e72; display:block; margin-bottom:8px;">BÜGÜNKÜ ƏMƏLİYYATLAR:</b>
                 <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
 
-            todayItems.forEach(i => {
+            // Ən son əməliyyatı yuxarıda göstərmək üçün siyahını tərsinə çeviririk
+            todayItems.reverse().forEach(i => {
                 let isSale = i.type === 'sale';
                 let isPayment = i.type === 'payment';
-                let isRefund = i.type === 'refund';
 
                 let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
                 let badgeText = isSale ? 'Satış' : (isPayment ? 'Ödəniş' : 'Qaytarılma');
@@ -807,11 +809,25 @@ async function loadCompanyData() {
                 let paidVal = Math.abs(Number(i.paid) || 0);
                 let amountText = isSale ? `${totalVal.toFixed(2)} ₼` : `${paidVal.toFixed(2)} ₼`;
 
-                // RAW sahəsi Supabase-də massiv (ARRAY) və ya JSON kimi gəlirsə
-                let rawList = Array.isArray(i.raw) ? i.raw : (typeof i.raw === 'string' ? JSON.parse(i.raw || '[]') : []);
-                let statsExtra = isSale && rawList.length > 0 ? ` | Çəkilər: ${rawList.join(', ')}` : '';
+                // RAW sahəsinin təhlükəsiz emalı (SyntaxError qarşısını almaq üçün)
+                let rawText = "";
+                if (i.raw) {
+                    if (Array.isArray(i.raw)) {
+                        rawText = i.raw.join(', ');
+                    } else if (typeof i.raw === 'string') {
+                        try {
+                            let parsed = JSON.parse(i.raw);
+                            rawText = Array.isArray(parsed) ? parsed.join(', ') : String(parsed);
+                        } catch (e) {
+                            rawText = i.raw; // Pozulmuş JSON olduqda mətni olduğu kimi götürür
+                        }
+                    } else {
+                        rawText = String(i.raw);
+                    }
+                }
 
-                let displayDate = i.date ? (i.date.split(',')[1] || i.date) : new Date(i.date).toLocaleTimeString('az-AZ');
+                let statsExtra = isSale && rawText ? ` | Çəkilər: ${rawText}` : '';
+                let displayDate = i.date ? (i.date.includes(',') ? i.date.split(',')[1] : i.date) : '';
 
                 listHtml += `<div style="background:#f8f9fa; padding:8px 10px; border-radius:6px; border-left:4px solid ${badgeColor}; font-size:12px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
