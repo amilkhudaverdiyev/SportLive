@@ -797,7 +797,7 @@ window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON
 async function calc() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
-    let extra = parseFloat(document.getElementById('e').value) || 0;
+    let extra = parseInt(document.getElementById('e').value) || 0;
     let paid = parseFloat(document.getElementById('paidInp').value) || 0;
     let weightsText = document.getElementById('l').value;
 
@@ -805,54 +805,67 @@ async function calc() {
 
     let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
     let totalWeight = weights.reduce((a, b) => a + b, 0);
-    let count = weights.length + extra;
-    let totalSum = totalWeight * price;
+    
+    // 1% Faiz (İtki) və Xalis çəki hesabı
+    let fire = totalWeight * 0.01;
+    let netWeight = totalWeight - fire;
+    
+    let totalSum = netWeight * price;
     let debt = totalSum - paid;
+    let currentDateStr = new Date().toLocaleString('sv-SE').replace('T', ' ');
 
-    let currentDate = new Date().toISOString();
-
-    cur = { name, count, totalWeight, price, paid, debt, totalSum, date: new Date().toLocaleString() };
-
-    let history = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-    history.push(cur);
-    localStorage.setItem(getStorageKey('h_v7'), JSON.stringify(history));
-
-    // Supabase İnteqrasiyası
+    // Supabase inteqrasiyası
     if(window.supabaseClient) {
         try {
-            const { data, error } = await window.supabaseClient
-                .from('sales_history') // Cədvəl adı düzəldildi
-                .insert([
-                    { 
-                        company_name: currentCompany, 
-                        name: name, 
-                        extra: extra,
-                        sum: totalWeight,
-                        fire: 0,
-                        net: totalWeight,
-                        total: totalSum, 
-                        price: price, 
-                        paid: paid, 
-                        debt: debt,
-                        date: currentDate,
-                        raw: weightsText,
-                        type: 'sale'
-                    }
-                ]);
-
-            if (error) {
-                console.error("Supabase sorğu xətası:", error.message);
-            }
+            await window.supabaseClient.from('sales_history').insert([{ 
+                company_name: currentCompany, 
+                name: name, 
+                extra: extra,
+                sum: totalWeight,
+                fire: fire,
+                net: netWeight,
+                total: totalSum, 
+                price: price, 
+                paid: paid, 
+                debt: debt,
+                date: new Date().toISOString(),
+                raw: weightsText,
+                type: 'sale'
+            }]);
         } catch(e) {
-            console.error("Şəbəkə və ya Supabase xətası:", e);
+            console.error("Supabase xətası:", e);
         }
     }
 
-    document.getElementById('r-top').innerText = `Müştəri: ${name}`;
-    document.getElementById('r-weights').innerText = `Çəkilər: ${weights.join(', ')}`;
-    document.getElementById('r-bottom').innerText = `Cəm çəki: ${totalWeight.toFixed(2)} kq | Qiymət: ${price} ₼`;
-    document.getElementById('r-total').innerText = `Yekun: ${totalSum.toFixed(2)} ₼`;
+    // Əvvəlki formaya uyğun Qəbz HTML-nin yığılması
+    let formattedWeights = weights.map((w, i) => `${i + 1}. ${w.toFixed(2)}`).join('<br>');
+
+    document.getElementById('r-top').innerHTML = `
+        <div class="r-row"><span>Alıcı:</span><b>${name}</b></div>
+        <div class="r-row"><span>Tarix:</span><span>${currentDateStr}</span></div>
+    `;
+    
+    document.getElementById('r-weights').innerHTML = formattedWeights;
+    
+    document.getElementById('r-bottom').innerHTML = `
+        <div class="r-row"><span>Ümumi Çəki:</span><span>${totalWeight.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Faiz (1%):</span><span>-${fire.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Qiymət:</span><span>${price.toFixed(2)} ₼</span></div>
+        <div class="r-row"><span>Əlavə Say:</span><span>${extra}</span></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row"><b>Xalis:</b><b>${netWeight.toFixed(3)} kq</b></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row" style="color:var(--s);"><span>Ödənildi:</span><span>${paid.toFixed(2)} ₼</span></div>
+        <div class="r-row" style="color:var(--d);"><span>Borc:</span><span>${debt.toFixed(2)} ₼</span></div>
+    `;
+    
+    document.getElementById('r-total').innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
+    
     document.getElementById('res').style.display = 'block';
+    
+    // Düymələri göstər
+    document.getElementById('wb').style.display = 'block';
+    document.getElementById('sb').style.display = 'block';
 
     updateDash();
 }
