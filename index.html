@@ -1,4 +1,4 @@
-v2033<!DOCTYPE html>
+v2033.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -862,20 +862,45 @@ async function loadCompanyData() {
 }
     function closeCheckModal() { document.getElementById('checkModal').style.display = 'none'; }
 
-    function deleteSale(index) {
-        if(confirm("Bu məlumat zibil qutusuna atılsın?")) {
-            let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-            let trash = JSON.parse(localStorage.getItem(getStorageKey('trash_v7')) || "[]");
-            let deletedItem = h.splice(index, 1)[0];
-            trash.unshift(deletedItem);
-            localStorage.setItem(getStorageKey('h_v7'), JSON.stringify(h));
-            localStorage.setItem(getStorageKey('trash_v7'), JSON.stringify(trash.slice(0, 2000)));
-            ldSales();
-            ldPayments();
-            if(typeof ldTrash === "function") ldTrash();
+    async function deleteSale(id) {
+    console.log("Silinmək istənən ID:", id); // ID gəlirmi yoxlayaq
+
+    if (!confirm("Bu satış zibil qutusu uzaqlasdırılsın?")) return;
+
+    if (!window.supabaseClient) {
+        console.error("Supabase client tapılmadı!");
+        return;
+    }
+
+    try {
+        let { data, error } = await window.supabaseClient
+            .from('sales_history')
+            .update({ is_deleted: true })
+            .eq('id', id)
+            .select(); // Görək bazadan nə qayıdır
+
+        console.log("Supabase cavabı (data):", data);
+        console.log("Supabase cavabı (error):", error);
+
+        if (error) {
+            alert("Supabase xətası: " + error.message);
+            return;
+        }
+
+        alert("Uğurla zibil qutusuna atıldı!");
+
+        // Siyahını yenilə
+        if (typeof fetchSalesHistory === 'function') {
+            fetchSalesHistory();
+        }
+        if (typeof updateDash === 'function') {
             updateDash();
         }
+
+    } catch (e) {
+        console.error("Gözlənilməz xəta:", e);
     }
+}
     async function editSale(id) {
     if (!confirm("Məlumatlar hesablama bölməsinə köçürülsün?")) return;
 
