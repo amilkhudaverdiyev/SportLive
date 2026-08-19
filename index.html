@@ -1,4 +1,4 @@
-v2029.1<!DOCTYPE html>
+v2029.1.1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1002,11 +1002,15 @@ function toggleSaleDetail(id) {
         el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
     }
 }
-    async function ldPayments() {
+   async function ldPayments() {
     let container = document.getElementById('paymentsTable');
+    if (!container) return;
+
     container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
 
     let payments = [];
+
+    // Supabase-dən ödəniş və pul qaytarma tarixçəsini çəkirik
     if (window.supabaseClient && currentCompany) {
         try {
             let { data, error } = await window.supabaseClient
@@ -1024,14 +1028,59 @@ function toggleSaleDetail(id) {
         }
     }
 
-    if (!payments.length) return container.innerHTML = `<p style="padding:20px; text-align:center;">Ödəniş yoxdur.</p>`;
-    
-    let html = `<table><tr><th>Alıcı / Tarix</th><th>Məbləğ</th><th>Əməl</th></tr>`;
+    if (!payments.length) {
+        container.innerHTML = `<p style="padding:20px; text-align:center;">Ödəniş yoxdur.</p>`;
+        return;
+    }
+
+    let html = `<table><tr><th>Alıcı / Tarix</th><th>Məbləğ</th><th>Növ</th><th>Əməl</th></tr>`;
+
     payments.forEach(i => {
-        let paidVal = Math.abs(parseFloat(i.paid) || 0);
-        html += `<tr><td><b>${i.name}</b><br><small>${i.date}</small></td><td class="paid">${paidVal.toFixed(2)} ₼</td><td><button onclick="deleteSale('${i.id}')" style="background:var(--d); padding:2px 6px;">Sil</button></td></tr>`;
+        let növ = i.type === 'refund' ? 'PUL QAYTARILDI' : 'Borc Silinməsi';
+        let paidVal = parseFloat(i.paid) || 0;
+        let isNegative = paidVal < 0;
+
+        html += `<tr>
+            <td><b>${i.name || ''}</b><br><small>${i.date || ''}</small></td>
+            <td class="${isNegative ? 'txt-debt' : 'paid'}">${Math.abs(paidVal).toFixed(2)} ₼</td>
+            <td>${növ}</td>
+            <td style="text-align:center;">
+                <button onclick="deleteSale('${i.id}')" style="background: var(--d); padding: 5px 10px; font-size: 10px; width:auto; border-radius:4px; border:none; color:white; font-weight:bold; cursor:pointer;">SİL</button>
+            </td>
+        </tr>`;
     });
-    container.innerHTML = html + "</table>";
+
+    html += "</table>";
+
+    // Alt hissəyə təmizləmə düyməsinin əlavə olunması
+    let footer = `<button class="b-clr" style="width:100%; margin-top:20px; background:var(--d); color:white; padding:10px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="clrPaymentsH()">ÖDƏNİŞ TARİXÇƏSİNİ SİL</button>`;
+
+    container.innerHTML = html + footer;
+}
+
+// Bütün ödəniş tarixçəsini Supabase-dən silmək üçün köməkçi funksiya
+async function clrPaymentsH() {
+    if (confirm("Bütün ödəniş tarixçəsi silinsin?")) {
+        if (window.supabaseClient && currentCompany) {
+            try {
+                let { error } = await window.supabaseClient
+                    .from('sales_history')
+                    .delete()
+                    .eq('company_name', currentCompany)
+                    .in('type', ['payment', 'refund']);
+
+                if (!error) {
+                    await ldPayments();
+                    if (typeof ldB === 'function') await ldB();
+                    if (typeof updateDash === 'function') await updateDash();
+                } else {
+                    alert("Silinərkən xəta baş verdi!");
+                }
+            } catch(e) {
+                console.error("Tarixçə silinərkən xəta:", e);
+            }
+        }
+    }
 }
    async function ldB() {
     let container = document.getElementById('debtSummary');
