@@ -1,4 +1,4 @@
-v2030.1.2<!DOCTYPE html>
+v2030.1.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -336,60 +336,31 @@ async function syncSalesCompaniesToCompaniesTable(salesCompanies, existingCompan
     }
 }
 
-// 2. Yenilənmiş initWelcomeScreen funksiyası
+// 2. Müəssisələrin oxunması - Bütün müəssisələri 'companies' cədvəlindən çəkir
 async function initWelcomeScreen() {
     let select = document.getElementById('welcomeCompanySelect');
     if (!select) return;
 
     select.innerHTML = "<option>Yüklənir...</option>";
-    
-    let companiesMap = {};
-    let existingCompaniesFromTable = [];
-    let salesCompaniesList = [];
+    let companyList = [];
 
     if (window.supabaseClient) {
         try {
-            // A) 'companies' cədvəlini oxuyuruq
+            // Əsas mənbə 'companies' cədvəlidir
             let { data: compData, error: cErr } = await window.supabaseClient
                 .from('companies')
-                .select('name');
+                .select('name')
+                .order('name', { ascending: true });
 
             if (!cErr && compData) {
-                compData.forEach(item => {
-                    if (item.name) {
-                        let trimmed = item.name.trim();
-                        existingCompaniesFromTable.push(trimmed);
-                        companiesMap[trimmed.toLowerCase()] = trimmed;
-                    }
-                });
+                companyList = compData.map(item => item.name.trim());
+            } else if (cErr) {
+                console.error("Companies cədvəli oxunarkən xəta:", cErr);
             }
-
-            // B) 'sales_history' cədvəlini oxuyuruq
-            let { data: salesData, error: sErr } = await window.supabaseClient
-                .from('sales_history')
-                .select('company_name');
-
-            if (!sErr && salesData) {
-                salesData.forEach(item => {
-                    if (item.company_name) {
-                        let trimmed = item.company_name.trim();
-                        if (!salesCompaniesList.includes(trimmed)) {
-                            salesCompaniesList.push(trimmed);
-                        }
-                        companiesMap[trimmed.toLowerCase()] = trimmed;
-                    }
-                });
-            }
-
-            // C) Əgər sales_history-də olub companies cədvəlində olmayan müəssisə varsa, bazada avtomatik yaradılır
-            await syncSalesCompaniesToCompaniesTable(salesCompaniesList, existingCompaniesFromTable);
-
         } catch (e) {
-            console.error("Müəssisələr sinkronizasiya edilərkən xəta:", e);
+            console.error("Müəssisələr çəkilərkən xəta:", e);
         }
     }
-
-    let companyList = Object.values(companiesMap).sort();
 
     if (companyList.length === 0) {
         companyList = ["Müəssisə 1"];
@@ -493,6 +464,7 @@ function selectWelcomeCompany() {
     showMainApp();
 }
 
+// 1. Yeni müəssisə yaradılması - YALNIZ 'companies' cədvəlinə düşür (sales_history-yə düşmür)
 async function addNewCompanyFromWelcome() {
     let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
     if (!name) return;
@@ -500,50 +472,41 @@ async function addNewCompanyFromWelcome() {
     name = name.trim();
     if (!name) return;
 
-    if (window.supabaseClient) {
-        try {
-            // 1. 'companies' cədvəlində yoxlayırıq
-            let { data: existing } = await window.supabaseClient
-                .from('companies')
-                .select('name')
-                .eq('name', name)
-                .maybeSingle();
+    if (!window.supabaseClient) {
+        return alert("Supabase bağlantısı yoxdur!");
+    }
 
-            if (existing) {
-                return alert("Bu adla müəssisə artıq bazada mövcuddur!");
-            }
+    try {
+        // Əvvəlcə 'companies' cədvəlində olub-olmadığını yoxlayırıq
+        let { data: existing, error: checkErr } = await window.supabaseClient
+            .from('companies')
+            .select('name')
+            .ilike('name', name);
 
-            // 2. 'companies' cədvəlinə əlavə edirik
-            let { error: compError } = await window.supabaseClient
-                .from('companies')
-                .insert([{ name: name }]);
-
-            if (compError) throw compError;
-
-            // 3. Müəssisə satış etmədən də 'sales_history' sistemində aktiv olsun deyə ilkin qeyd atırıq
-            await window.supabaseClient
-                .from('sales_history')
-                .insert([{
-                    company_name: name,
-                    name: 'SİSTEM',
-                    extra: 'MÜƏSSİSƏ YARADILDI',
-                    type: 'system_init',
-                    sum: 0, fire: 0, net: 0, total: 0, price: 0, paid: 0, debt: 0,
-                    date: new Date().toLocaleString('az-AZ'),
-                    raw: []
-                }]);
-
-            currentCompany = name;
-            localStorage.setItem('active_company', name);
-            
-            alert(`"${name}" müəssisəsi uğurla yaradıldı!`);
-            await initWelcomeScreen();
-            showMainApp();
-
-        } catch (e) {
-            console.error("Müəssisə yaradılarkən xəta:", e);
-            alert("Xəta baş verdi! Supabase RLS icazələrini yoxlayın.");
+        if (existing && existing.length > 0) {
+            return alert("Bu adla müəssisə artıq bazada mövcuddur!");
         }
+
+        // Yalnız 'companies' cədvəlinə əlavə edirik
+        let { error: compError } = await window.supabaseClient
+            .from('companies')
+            .insert([{ name: name }]);
+
+        if (compError) {
+            console.error("Companies insert xətası:", compError);
+            return alert("Müəssisə yaradılarkən xəta baş verdi!");
+        }
+
+        currentCompany = name;
+        localStorage.setItem('active_company', name);
+        
+        alert("${name}" müəssisəsi uğurla yaradıldı!);
+        await initWelcomeScreen();
+        showMainApp();
+
+    } catch (e) {
+        console.error("Müəssisə yaradılarkən xəta:", e);
+        alert("Xəta baş verdi!");
     }
 }
 function showMainApp() {
