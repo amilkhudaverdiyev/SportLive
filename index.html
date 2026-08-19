@@ -1,4 +1,4 @@
-v2031.3.2<!DOCTYPE html>
+v2032<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -876,6 +876,47 @@ async function loadCompanyData() {
             updateDash();
         }
     }
+    async function editSale(id) {
+    if (!confirm("Məlumatlar hesablama bölməsinə köçürülsün?")) return;
+
+    try {
+        // 1. Supabase-dən həmin ID-yə uyğun məlumatı çəkirik
+        const { data: item, error } = await supabase
+            .from('sales') // Cədvəl adınızı bura yazın (məsələn: 'sales' və ya 'satislar')
+            .select('*')
+            .eq('id', id)
+            .single();
+
+        if (error) throw error;
+
+        // 2. Məlumatları inputlara doldururuq (Sizin input ID-lərinizə uyğun)
+        document.getElementById('n').value = item.name || '';
+        document.getElementById('e').value = item.extra || '';
+        document.getElementById('p').value = item.price || '';
+        
+        // Əgər 'raw' massiv və ya sətirdirsə:
+        if (Array.isArray(item.raw)) {
+            document.getElementById('l').value = item.raw.join('\n');
+        } else {
+            document.getElementById('l').value = item.raw || '';
+        }
+        
+        document.getElementById('paidInp').value = item.paid || '';
+
+        // 3. Əgər qeydi redaktə rejiminə keçirmək üçün ID-ni saxlamaq lazımdırsa (gizli input və ya qlobal dəyişən)
+        // Məsələn, yadda saxla düyməsi bilməlidir ki, bu yeni satışdır, yoxsa mövcud sətrin yenilənməsidir:
+        window.currentEditId = id; 
+
+        // 4. Hesablama tabına keçid
+        shTab('c', document.querySelectorAll('.tab')[1]);
+        
+        alert("Məlumatlar dolduruldu. Dəyişiklik edib yenidən yadda saxlayın.");
+
+    } catch (error) {
+        console.error("Redaktə xətası:", error.message);
+        alert("Məlumatı yükləmək mümkün olmadı: " + error.message);
+    }
+}
 
     function ldTrash() {
         let trash = JSON.parse(localStorage.getItem(getStorageKey('trash_v7')) || "[]");
