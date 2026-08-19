@@ -1,4 +1,4 @@
-v2034<!DOCTYPE html>
+v2035<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -435,7 +435,7 @@ function filterGlobalDebts() {
     initWelcomeScreen();
 }
 
-async function renderGlobalDebts(companyList) {
+/*async function renderGlobalDebts(companyList) {
     let container = document.getElementById('globalDebtListContent');
     let globalTotals = {};
 
@@ -487,7 +487,83 @@ async function renderGlobalDebts(companyList) {
 
     container.innerHTML = hasActiveDebt ? html : `<p style="padding:15px; text-align:center; color:#888; font-size:13px; margin:0;">Uyğun nəticə tapılmadı.</p>`;
 }
+*/
+    async function renderGlobalDebts(companyList) {
+    let container = document.getElementById('globalDebtListContent');
+    if (!container) {
+        console.error("globalDebtListContent elementi tapılmadı!");
+        return;
+    }
 
+    let globalTotals = {};
+
+    if (window.supabaseClient) {
+        try {
+            let { data, error } = await window.supabaseClient
+                .from('sales_history')
+                .select('*');
+
+            console.log("Supabase error:", error);
+            console.log("Supabase data (hamısı):", data);
+
+            if (error) {
+                container.innerHTML = `<p style="padding:15px; text-align:center; color:red;">Xəta: ${error.message}</p>`;
+                return;
+            }
+
+            if (data && data.length > 0) {
+                // Silinməmişləri ayırırıq
+                let activeData = data.filter(item => item.is_deleted !== true && item.is_deleted !== "true");
+                console.log("Aktiv (silinməmiş) data:", activeData);
+
+                activeData.forEach(item => {
+                    let nameKey = (item.name || "").toLowerCase().trim();
+                    if (!nameKey) return;
+                    if (!globalTotals[nameKey]) {
+                        globalTotals[nameKey] = { originalName: item.name, sumDebt: 0 };
+                    }
+                    globalTotals[nameKey].sumDebt += (parseFloat(item.debt) || 0);
+                });
+            } else {
+                console.log("Bazada heç bir məlumat tapılmadı.");
+            }
+        } catch (e) {
+            console.error("Qlobal borclar çəkilərkən gözlənilməz xəta:", e);
+        }
+    } else {
+        console.error("supabaseClient tapılmadı!");
+    }
+
+    console.log("Hesablanmış globalTotals:", globalTotals);
+
+    let searchTerm = (document.getElementById('globalSearchInp') ? document.getElementById('globalSearchInp').value : "").toLowerCase();
+    let html = "";
+    let hasActiveDebt = false;
+
+    let sortedKeys = Object.keys(globalTotals).sort((a, b) => globalTotals[b].sumDebt - globalTotals[a].sumDebt);
+
+    sortedKeys.forEach(key => {
+        let item = globalTotals[key];
+        let debtVal = Math.round(item.sumDebt * 100) / 100;
+
+        if (debtVal !== 0) {
+            let isCredit = debtVal < 0;
+
+            if (globalFilterType === 'debt' && isCredit) return;
+            if (globalFilterType === 'credit' && !isCredit) return;
+            if (searchTerm && !item.originalName.toLowerCase().includes(searchTerm)) return;
+
+            hasActiveDebt = true;
+            let colorClass = isCredit ? 'txt-credit' : 'txt-debt';
+            html += `<div class="global-debt-item">
+                <span style="font-weight: 500;">${item.originalName}</span>
+                <span class="${colorClass}" style="color: ${isCredit ? 'var(--s)' : 'var(--d)'}; font-weight: bold;">${Math.abs(debtVal).toFixed(2)} ₼ ${isCredit ? '(+)' : '(-)'}</span>
+            </div>`;
+        }
+    });
+
+    container.innerHTML = hasActiveDebt ? html : `<p style="padding:15px; text-align:center; color:#888; font-size:13px; margin:0;">Uyğun nəticə tapılmadı.</p>`;
+}
 function selectWelcomeCompany() {
     let select = document.getElementById('welcomeCompanySelect');
     if (!select.value) return alert("Zəhmət olmasa müəssisə seçin!");
@@ -1681,6 +1757,7 @@ async function updateDash() {
             const { data, error } = await window.supabaseClient
                 .from('sales_history')
                 .select('*')
+                .eq('company_name', currentCompany)
                 .not('is_deleted', 'eq', true);
                
 
