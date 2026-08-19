@@ -1,4 +1,4 @@
-v2035<!DOCTYPE html>
+v2035/2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1755,10 +1755,10 @@ async function updateDash() {
     if (window.supabaseClient && currentCompany) {
         try {
             const { data, error } = await window.supabaseClient
-                .from('sales_history')
-                .select('*')
-                .eq('company_name', currentCompany)
-                .not('is_deleted', 'eq', true);
+                 .from('sales_history')
+                        .select('*')
+                        .eq('company_name', currentCompany);
+
                
 
             if (!error && data) {
