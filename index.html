@@ -1,4 +1,4 @@
-v2038<!DOCTYPE html>
+v2038. 1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -410,20 +410,22 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
     await renderGlobalDebts(companyList);
 }*/
     select.innerHTML = "";
+select.innerHTML = "";
 
-// Əgər siyahı hələ gəlməyibsə və ya boşdursa, "Yüklənir..." əlavə edirik (hidden ilə qutuda görünməyəcək)
+// 1. Əgər siyahı hələ gəlməyibsə, "Yüklənir..." yazısını əlavə edirik
 if (!companyList || companyList.length === 0) {
     let loadingOpt = document.createElement('option');
+    loadingOpt.id = "loadingOption"; // Unikal ID veririk ki, sonradan tapa bilək
     loadingOpt.value = "";
     loadingOpt.innerText = "Yüklənir...";
     loadingOpt.disabled = true;
     loadingOpt.selected = true;
-    loadingOpt.hidden = true; // <-- Qutunun içində görünməsinin qarşısını alır
     select.appendChild(loadingOpt);
     
     companyList = ["Müəssisə 1"]; // Ehtiyat olaraq
 }
 
+// 2. Real müəssisələri siyahıya əlavə edirik
 companyList.forEach(c => {
     let opt = document.createElement('option');
     opt.value = c;
@@ -432,15 +434,20 @@ companyList.forEach(c => {
     select.appendChild(opt);
 });
 
-// Əgər currentCompany hələ təyin olunmayıbsa və siyahıda element varsa, avtomatik ilkini seçirik
+// 3. Əgər real məlumatlar artıq gəlibsə, "Yüklənir..." sətrini tapıb tamamilə silirik
+let loadingEl = document.getElementById("loadingOption");
+if (loadingEl && companyList.length > 0 && companyList[0] !== "Müəssisə 1") {
+    loadingEl.remove();
+}
+
+// Əgər currentCompany hələ təyin olunmayıbsa, ilkini seçirik
 if (!currentCompany && companyList.length > 0) {
     currentCompany = companyList[0];
     select.value = currentCompany;
 }
 
-await renderGlobalDebts(companyList);
+await renderGlobalDebts(companyList);} 
 
-} 
 function toggleGlobalDebts() {
     let box = document.getElementById('globalDebtContainer');
     let btn = document.getElementById('debtToggleBtn');
