@@ -1,4 +1,4 @@
-v2037.2<!DOCTYPE html>
+v2038<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -398,7 +398,7 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
         companyList = ["Müəssisə 1"];
     }
 
-    select.innerHTML = "";
+    /*select.innerHTML = "";
     companyList.forEach(c => {
         let opt = document.createElement('option');
         opt.value = c;
@@ -408,7 +408,39 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
     });
 
     await renderGlobalDebts(companyList);
+}*/
+    select.innerHTML = "";
+
+// Əgər siyahı hələ gəlməyibsə və ya boşdursa, "Yüklənir..." əlavə edirik (hidden ilə qutuda görünməyəcək)
+if (!companyList || companyList.length === 0) {
+    let loadingOpt = document.createElement('option');
+    loadingOpt.value = "";
+    loadingOpt.innerText = "Yüklənir...";
+    loadingOpt.disabled = true;
+    loadingOpt.selected = true;
+    loadingOpt.hidden = true; // <-- Qutunun içində görünməsinin qarşısını alır
+    select.appendChild(loadingOpt);
+    
+    companyList = ["Müəssisə 1"]; // Ehtiyat olaraq
 }
+
+companyList.forEach(c => {
+    let opt = document.createElement('option');
+    opt.value = c;
+    opt.innerText = c;
+    if (c === currentCompany) opt.selected = true;
+    select.appendChild(opt);
+});
+
+// Əgər currentCompany hələ təyin olunmayıbsa və siyahıda element varsa, avtomatik ilkini seçirik
+if (!currentCompany && companyList.length > 0) {
+    currentCompany = companyList[0];
+    select.value = currentCompany;
+}
+
+await renderGlobalDebts(companyList);
+
+} 
 function toggleGlobalDebts() {
     let box = document.getElementById('globalDebtContainer');
     let btn = document.getElementById('debtToggleBtn');
