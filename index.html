@@ -342,8 +342,10 @@ async function initWelcomeScreen() {
     let select = document.getElementById('welcomeCompanySelect');
     if (!select) return;
 
-    select.innerHTML = "<option>Yüklənir...</option>";
-    
+   // select.innerHTML = "<option>Yüklənir...</option>";
+    // Siyahı yüklənərkən göstərilən hissə:
+companySelect.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
+
     let companiesMap = {};
     let existingCompaniesFromTable = [];
     let salesCompaniesList = [];
