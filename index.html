@@ -1,4 +1,4 @@
-v2040<!DOCTYPE html>
+v2040. 2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -440,6 +440,9 @@ async function initWelcomeScreen() {
     if (!select) return;
 
     // 1. Yüklənən zaman select-i kilidləyirik, yazını göstəririk
+    // BURANI DƏYİŞDİRİRİK: 
+    // "Yüklənir..." option-u əvəzinə menyunu birbaşa kilidləyirik
+    select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
     select.disabled = true;
     if (loadingMessage) loadingMessage.style.display = 'inline'; // və ya 'block'
 
@@ -495,7 +498,7 @@ async function initWelcomeScreen() {
 
     // 2. Məlumatlar gəldi, siyahını təmizləyib doldururuq
     select.innerHTML = "";
-    
+    select.disabled = false;
     companyList.forEach(c => {
         let opt = document.createElement('option');
         opt.value = c;
