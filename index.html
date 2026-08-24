@@ -1,4 +1,4 @@
-v2041. 5<!DOCTYPE html>
+v2042<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -964,7 +964,7 @@ async function loadCompanyData() {
         return;
     }
 
-    try {
+   /* try {
         // Cihazın dil parametrlərindən ASILI OLMADAN bugünkü günü YYYY-MM-DD və DD.MM.YYYY kimi alırıq
         let now = new Date();
         let yyyy = now.getFullYear();
@@ -1065,7 +1065,120 @@ async function loadCompanyData() {
             ${listHtml}
         `;
 
-    } catch (e) {
+    } */
+         try {
+        let now = new Date();
+        let yyyy = now.getFullYear();
+        let mm = String(now.getMonth() + 1).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
+        let isoToday = `${yyyy}-${mm}-${dd}`; // "2026-08-25"
+
+        let { data: allItems, error } = await window.supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('company_name', currentCompany);
+
+        if (error) {
+            console.error("openCheckModal Supabase xətası:", error);
+            checkContent.innerHTML = `<p style="text-align:center; color:red;">Məlumatlar yüklənərkən xəta baş verdi.</p>`;
+            return;
+        }
+
+        allItems = allItems || [];
+
+        // Həm YYYY-MM-DD, həm DD.MM.YYYY, həm də ISO tarixləri dəqiq yoxlayan universal filter
+        let todayItems = allItems.filter(i => {
+            if (i.type === 'system_init') return false;
+            if (!i.date) return false;
+            
+            let dStr = String(i.date).trim();
+
+            // 1. Əgər birbaşa bizim formatla başlayırsa və ya içində varsa
+            if (dStr.includes(isoToday) || dStr.includes(`${dd}.${mm}.${yyyy}`) || dStr.includes(`${dd}/${mm}/${yyyy}`)) {
+                return true;
+            }
+
+            // 2. Əgər bazadaki tarix ISO formatdadırsa (məs: 2026-08-25T...) onu qırıb yoxlayaq
+            try {
+                let extractedDate = dStr.split('T')[0].split(' ')[0];
+                if (extractedDate === isoToday) return true;
+            } catch (err) {}
+
+            return false;
+        });
+
+        let todaySales = todayItems.filter(i => i.type === 'sale');
+
+        // Hesablamalar və siyahının qurulması (qalan hissə eyni qalır)
+        let totalCash = todaySales.reduce((sum, i) => sum + (Number(i.paid) || 0), 0);
+        let totalCount = todaySales.reduce((sum, i) => sum + (parseInt(i.extra) || 0), 0);
+        let totalSaleAmount = todaySales.reduce((sum, i) => sum + (Number(i.total) || 0), 0);
+
+        let listHtml = "";
+        if (todayItems.length === 0) {
+            listHtml = `<p style="text-align:center; color:#888; margin:15px 0;">Bugün heç bir əməliyyat qeydə alınmayıb.</p>`;
+        } else {
+            listHtml = `<div style="margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
+                <b style="font-size:12px; color:#636e72; display:block; margin-bottom:8px;">BÜGÜNKÜ ƏMƏLİYYATLAR:</b>
+                <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
+
+            // Orijinal array-i pozmamaq üçün [...todayItems].reverse() istifadə edirik
+            [...todayItems].reverse().forEach(i => {
+                let isSale = i.type === 'sale';
+                let isPayment = i.type === 'payment';
+
+                let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
+                let badgeText = isSale ? 'Satış' : (isPayment ? 'Ödəniş' : 'Qaytarılma');
+                
+                let totalVal = Number(i.total) || 0;
+                let paidVal = Math.abs(Number(i.paid) || 0);
+                let amountText = isSale ? `${totalVal.toFixed(2)} ₼` : `${paidVal.toFixed(2)} ₼`;
+
+                let rawText = "";
+                if (i.raw) {
+                    if (Array.isArray(i.raw)) {
+                        rawText = i.raw.join(', ');
+                    } else if (typeof i.raw === 'string') {
+                        try {
+                            let parsed = JSON.parse(i.raw);
+                            rawText = Array.isArray(parsed) ? parsed.join(', ') : String(parsed);
+                        } catch (e) {
+                            rawText = i.raw;
+                        }
+                    } else {
+                        rawText = String(i.raw);
+                    }
+                }
+
+                let statsExtra = isSale && rawText ? ` | Çəkilər: ${rawText}` : '';
+                let displayDate = i.date ? (String(i.date).includes(',') ? String(i.date).split(',')[1] : i.date) : '';
+
+                listHtml += `<div style="background:#f8f9fa; padding:8px 10px; border-radius:6px; border-left:4px solid ${badgeColor}; font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                        <b>${i.name || '-'}</b>
+                        <span style="font-weight:bold; color:${badgeColor};">${amountText}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#666; font-size:11px;">
+                        <span>${displayDate} (${badgeText})</span>
+                        ${isSale ? `<span>Say: ${i.extra || 0}</span>` : `<span>${i.extra || ''}</span>`}
+                    </div>
+                    ${statsExtra ? `<div style="color:#444; font-size:10px; margin-top:3px; word-break:break-all;"><b>Statistika:</b>${statsExtra}</div>` : ''}
+                </div>`;
+            });
+            listHtml += `</div></div>`;
+        }
+
+        checkContent.innerHTML = `
+            <div class="r-row"><span>Bugünkü satış sayı:</span><b>${todaySales.length}</b></div>
+            <div class="r-row"><span>Bugünkü say:</span><b>${totalCount}</b></div>
+            <div class="r-row"><span>Bugünkü dövriyyə:</span><b>${totalSaleAmount.toFixed(2)} ₼</b></div>
+            <div class="r-row"><span>Nəğd daxil olan:</span><b>${totalCash.toFixed(2)} ₼</b></div>
+            ${listHtml}
+        `;
+
+    }
+
+    catch (e) {
         console.error("openCheckModal xətası:", e);
         checkContent.innerHTML = `<p style="text-align:center; color:red;">Gözlənilməz xəta baş verdi!</p>`;
     }
