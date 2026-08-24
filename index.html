@@ -1,4 +1,4 @@
-v2042<!DOCTYPE html>
+v2052<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -950,7 +950,7 @@ async function loadCompanyData() {
         calculateProfit();
     }
 
- async function openCheckModal() {
+/* async function openCheckModal() {
     let checkContent = document.getElementById('checkContent');
     let checkModal = document.getElementById('checkModal');
     
@@ -1066,7 +1066,7 @@ async function loadCompanyData() {
         `;
 
     } */
-         try {
+       /*  try {
         let now = new Date();
         let yyyy = now.getFullYear();
         let mm = String(now.getMonth() + 1).padStart(2, '0');
@@ -1182,7 +1182,119 @@ async function loadCompanyData() {
         console.error("openCheckModal xətası:", e);
         checkContent.innerHTML = `<p style="text-align:center; color:red;">Gözlənilməz xəta baş verdi!</p>`;
     }
+} */
+    async function openCheckModal() {
+    let checkContent = document.getElementById('checkContent');
+    let checkModal = document.getElementById('checkModal');
+    
+    if (!checkContent || !checkModal) return;
+
+    checkContent.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Yüklənir...</p>`;
+    checkModal.style.display = 'flex';
+
+    if (!window.supabaseClient) {
+        checkContent.innerHTML = `<p style="text-align:center; color:red;">Supabase bağlantısı yoxdur!</p>`;
+        return;
+    }
+
+    try {
+        console.log("Axtarılan şirkət:", currentCompany);
+
+        // Şirkətə uyğun bütün məlumatları çəkirik (tarix filtrisiz, sadəcə sıralayırıq)
+        let { data: allItems, error } = await window.supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('company_name', currentCompany)
+            .order('id', { ascending: false }) // Ən son əlavə olunanlar üstdə gəlsin
+            .limit(50); // Son 50 əməliyyat
+
+        if (error) {
+            console.error("Supabase xətası:", error);
+            checkContent.innerHTML = `<p style="text-align:center; color:red;">Məlumatlar yüklənərkən xəta baş verdi: ${error.message}</p>`;
+            return;
+        }
+
+        allItems = allItems || [];
+        console.log("Bazadan gələn sətirlər:", allItems);
+
+        // Sistemin öz init qeydlərini çıxırıq
+        let validItems = allItems.filter(i => i.type !== 'system_init');
+
+        // Sadəcə bugünkü tarixi yoxlamaq əvəzinə, gələn son məlumatları birbaşa göstərək 
+        // (vəya istəsəniz bütün siyahını görək ki, tarixlərin necə yazıldığını anlayaq)
+        let todaySales = validItems.filter(i => i.type === 'sale');
+
+        let totalCash = todaySales.reduce((sum, i) => sum + (Number(i.paid) || 0), 0);
+        let totalCount = todaySales.reduce((sum, i) => sum + (parseInt(i.extra) || 0), 0);
+        let totalSaleAmount = todaySales.reduce((sum, i) => sum + (Number(i.total) || 0), 0);
+
+        let listHtml = "";
+        if (validItems.length === 0) {
+            listHtml = `<p style="text-align:center; color:#888; margin:15px 0;">Heç bir əməliyyat tapılmadı. (currentCompany düzgündür?)</p>`;
+        } else {
+            listHtml = `<div style="margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
+                <b style="font-size:12px; color:#636e72; display:block; margin-bottom:8px;">SON ƏMƏLİYYATLAR:</b>
+                <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
+
+            validItems.forEach(i => {
+                let isSale = i.type === 'sale';
+                let isPayment = i.type === 'payment';
+
+                let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
+                let badgeText = isSale ? 'Satış' : (isPayment ? 'Ödəniş' : 'Qaytarılma');
+                
+                let totalVal = Number(i.total) || 0;
+                let paidVal = Math.abs(Number(i.paid) || 0);
+                let amountText = isSale ? `${totalVal.toFixed(2)} ₼` : `${paidVal.toFixed(2)} ₼`;
+
+                let rawText = "";
+                if (i.raw) {
+                    if (Array.isArray(i.raw)) {
+                        rawText = i.raw.join(', ');
+                    } else if (typeof i.raw === 'string') {
+                        try {
+                            let parsed = JSON.parse(i.raw);
+                            rawText = Array.isArray(parsed) ? parsed.join(', ') : String(parsed);
+                        } catch (e) {
+                            rawText = i.raw;
+                        }
+                    } else {
+                        rawText = String(i.raw);
+                    }
+                }
+
+                let statsExtra = isSale && rawText ? ` | Çəkilər: ${rawText}` : '';
+                let displayDate = i.date || 'Tarix yoxdur';
+
+                listHtml += `<div style="background:#f8f9fa; padding:8px 10px; border-radius:6px; border-left:4px solid ${badgeColor}; font-size:12px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
+                        <b>${i.name || '-'}</b>
+                        <span style="font-weight:bold; color:${badgeColor};">${amountText}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between; color:#666; font-size:11px;">
+                        <span>${displayDate} (${badgeText})</span>
+                        ${isSale ? `<span>Say: ${i.extra || 0}</span>` : `<span>${i.extra || ''}</span>`}
+                    </div>
+                    ${statsExtra ? `<div style="color:#444; font-size:10px; margin-top:3px; word-break:break-all;"><b>Statistika:</b>${statsExtra}</div>` : ''}
+                </div>`;
+            });
+            listHtml += `</div></div>`;
+        }
+
+        checkContent.innerHTML = `
+            <div class="r-row"><span>Satış sayı (Ümumi):</span><b>${todaySales.length}</b></div>
+            <div class="r-row"><span>Ümumi say:</span><b>${totalCount}</b></div>
+            <div class="r-row"><span>Ümumi dövriyyə:</span><b>${totalSaleAmount.toFixed(2)} ₼</b></div>
+            <div class="r-row"><span>Nəğd daxil olan:</span><b>${totalCash.toFixed(2)} ₼</b></div>
+            ${listHtml}
+        `;
+
+    } catch (e) {
+        console.error("openCheckModal xətası:", e);
+        checkContent.innerHTML = `<p style="text-align:center; color:red;">Gözlənilməz xəta baş verdi: ${e.message}</p>`;
+    }
 }
+
     function closeCheckModal() { document.getElementById('checkModal').style.display = 'none'; }
 
     async function deleteSale(id) {
