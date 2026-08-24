@@ -1,4 +1,4 @@
-v2066<!DOCTYPE html>
+v2096<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1066,12 +1066,15 @@ async function openCheckModal() {
         `;
 
     } */
-       try {
+           try {
         let now = new Date();
         let yyyy = now.getFullYear();
         let mm = String(now.getMonth() + 1).padStart(2, '0');
         let dd = String(now.getDate()).padStart(2, '0');
+
         let isoToday = `${yyyy}-${mm}-${dd}`; // "2026-08-25"
+        let dotToday = `${dd}.${mm}.${yyyy}`; // "25.08.2026"
+        let slashToday = `${dd}/${mm}/${yyyy}`; // "25/08/2026"
 
         let { data: allItems, error } = await window.supabaseClient
             .from('sales_history')
@@ -1085,6 +1088,7 @@ async function openCheckModal() {
         }
 
         allItems = allItems || [];
+        
         // Bütün mümkünsüz tarix formatlarını yoxlayan universal filtrləmə
         let todayItems = allItems.filter(i => {
             if (i.type === 'system_init') return false;
@@ -1092,7 +1096,7 @@ async function openCheckModal() {
             
             let dStr = String(i.date).trim();
             
-            // Həm bizim yaratdığımız formatları, həm də bazadan gələn hər hansı tarix hissəsini yoxlayırıć
+            // Həm bizim yaratdığımız formatları, həm də bazadan gələn hər hansı tarix hissəsini yoxlayırıq
             return dStr.includes(isoToday) || dStr.includes(dotToday) || dStr.includes(slashToday) || dStr.startsWith(isoToday);
         });
 
