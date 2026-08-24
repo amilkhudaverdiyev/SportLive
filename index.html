@@ -1,4 +1,4 @@
-v256654<!DOCTYPE html>
+v664<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1599,6 +1599,91 @@ async function openCheckModal() {
                 let isPayment = i.type === 'payment';
 
                 let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
+            } 
+                               async function openCheckModal() {
+    let checkContent = document.getElementById('checkContent');
+    let checkModal = document.getElementById('checkModal');
+    
+    if (!checkContent || !checkModal) return;
+
+    checkContent.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Bugünkü əməliyyatlar yüklənir...</p>`;
+    checkModal.style.display = 'flex';
+
+    if (!window.supabaseClient) {
+        checkContent.innerHTML = `<p style="text-align:center; color:red;">Supabase bağlantısı yoxdur!</p>`;
+        return;
+    }
+
+    try {
+        console.log("Axtarılan şirkət:", currentCompany);
+
+        // Bugünkü tarixi alırıq (YYYY-MM-DD, DD.MM.YYYY və DD/MM/YYYY formatları üçün)
+        let now = new Date();
+        let yyyy = now.getFullYear();
+        let mm = String(now.getMonth() + 1).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
+
+        let isoToday = `${yyyy}-${mm}-${dd}`; // "2026-08-25"
+        let dotToday = `${dd}.${mm}.${yyyy}`; // "25.08.2026"
+        let slashToday = `${dd}/${mm}/${yyyy}`; // "25/08/2026"
+
+        // Şirkətə uyğun bütün məlumatları çəkib JavaScript tərəfində tam universal yoxlayırıq
+        let { data: allItems, error } = await window.supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('company_name', currentCompany)
+            .order('id', { ascending: false });
+
+        if (error) {
+            console.error("Supabase xətası:", error);
+            checkContent.innerHTML = `<p style="text-align:center; color:red;">Məlumatlar yüklənərkən xəta baş verdi: ${error.message}</p>`;
+            return;
+        }
+
+        allItems = allItems || [];
+
+        // Yalnız bugünkü tarixi dəqiq filter edən universal hissə
+        let todayItems = allItems.filter(i => {
+            if (i.type === 'system_init') return false;
+            if (!i.date) return false;
+            
+            let dStr = String(i.date).trim();
+            
+            // 1. Formatların hər hansı birini ehtiva edirmi və ya başlayırmı
+            if (dStr.includes(isoToday) || dStr.includes(dotToday) || dStr.includes(slashToday) || dStr.startsWith(isoToday)) {
+                return true;
+            }
+
+            // 2. ISO tarix stringlərinin kəsilib yoxlanılması
+            try {
+                let cleanDate = dStr.split('T')[0].split(' ')[0];
+                if (cleanDate === isoToday) return true;
+            } catch (err) {}
+
+            return false;
+        });
+
+        let todaySales = todayItems.filter(i => i.type === 'sale');
+
+        // Hesablamalar
+        let totalCash = todaySales.reduce((sum, i) => sum + (Number(i.paid) || 0), 0);
+        let totalCount = todaySales.reduce((sum, i) => sum + (parseInt(i.extra) || 0), 0);
+        let totalSaleAmount = todaySales.reduce((sum, i) => sum + (Number(i.total) || 0), 0);
+
+        let listHtml = "";
+        if (todayItems.length === 0) {
+            listHtml = `<p style="text-align:center; color:#888; margin:15px 0;">Bugün heç bir əməliyyat qeydə alınmayıb.</p>`;
+        } else {
+            listHtml = `<div style="margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
+                <b style="font-size:12px; color:#636e72; display:block; margin-bottom:8px;">BÜGÜNKÜ ƏMƏLİYYATLAR:</b>
+                <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
+
+            // Massivi pozmamaq üçün [...todayItems].reverse() istifadə olundu
+            [...todayItems].reverse().forEach(i => {
+                let isSale = i.type === 'sale';
+                let isPayment = i.type === 'payment';
+
+                let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
                 let badgeText = isSale ? 'Satış' : (isPayment ? 'Ödəniş' : 'Qaytarılma');
                 
                 let totalVal = Number(i.total) || 0;
@@ -1622,7 +1707,7 @@ async function openCheckModal() {
                 }
 
                 let statsExtra = isSale && rawText ? ` | Çəkilər: ${rawText}` : '';
-                let displayDate = i.date || 'Tarix yoxdur';
+                let displayDate = i.date ? (String(i.date).includes(',') ? String(i.date).split(',')[1] : i.date) : '';
 
                 listHtml += `<div style="background:#f8f9fa; padding:8px 10px; border-radius:6px; border-left:4px solid ${badgeColor}; font-size:12px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
@@ -1640,9 +1725,9 @@ async function openCheckModal() {
         }
 
         checkContent.innerHTML = `
-            <div class="r-row"><span>Satış sayı (Ümumi):</span><b>${todaySales.length}</b></div>
-            <div class="r-row"><span>Ümumi say:</span><b>${totalCount}</b></div>
-            <div class="r-row"><span>Ümumi dövriyyə:</span><b>${totalSaleAmount.toFixed(2)} ₼</b></div>
+            <div class="r-row"><span>Bugünkü satış sayı:</span><b>${todaySales.length}</b></div>
+            <div class="r-row"><span>Bugünkü say:</span><b>${totalCount}</b></div>
+            <div class="r-row"><span>Bugünkü dövriyyə:</span><b>${totalSaleAmount.toFixed(2)} ₼</b></div>
             <div class="r-row"><span>Nəğd daxil olan:</span><b>${totalCash.toFixed(2)} ₼</b></div>
             ${listHtml}
         `;
