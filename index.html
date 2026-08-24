@@ -1,4 +1,4 @@
-v2040. 2<!DOCTYPE html>
+v2041<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -681,9 +681,23 @@ async function renderGlobalDebts(companyList) {
 
     container.innerHTML = hasActiveDebt ? html : `<p style="padding:15px; text-align:center; color:#888; font-size:13px; margin:0;">Uyğun nəticə tapılmadı.</p>`;
 } */
-function selectWelcomeCompany() {
+/*function selectWelcomeCompany() {
     let select = document.getElementById('welcomeCompanySelect');
     if (!select.value) return alert("Zəhmət olmasa müəssisə seçin!");
+    currentCompany = select.value;
+    localStorage.setItem('active_company', currentCompany);
+    showMainApp();
+} */
+    
+function selectWelcomeCompany() {
+    let select = document.getElementById('welcomeCompanySelect');
+    
+    // Əgər dəyər yoxdursa və ya hələ "Yüklənir..." yazılıbsa, irəli getməsin
+    if (!select.value || select.value === "Yüklənir..." || select.value === "Seçin...") {
+        alert("Zəhmət olmasa müəssisənin yüklənməsini gözləyin və ya düzgün müəssisə seçin!");
+        return;
+    }
+
     currentCompany = select.value;
     localStorage.setItem('active_company', currentCompany);
     showMainApp();
