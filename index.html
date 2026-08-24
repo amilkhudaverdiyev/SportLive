@@ -1,4 +1,4 @@
-v2554<!DOCTYPE html>
+v256654<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1549,15 +1549,23 @@ async function openCheckModal() {
     }
 
     try {
+        try {
         console.log("Axtarılan şirkət:", currentCompany);
 
-        // Şirkətə uyğun bütün məlumatları çəkirik (tarix filtrisiz, sadəcə sıralayırıq)
+        // Bugünkü tarixi alırıq (YYYY-MM-DD formatında)
+        let now = new Date();
+        let yyyy = now.getFullYear();
+        let mm = String(now.getMonth() + 1).padStart(2, '0');
+        let dd = String(now.getDate()).padStart(2, '0');
+        let isoToday = `${yyyy}-${mm}-${dd}`; // Məsələn: "2026-08-25"
+
+        // Supabase-dən birbaşa yalnız bugünkü tarixi olanları və ya həmin tarixlə başlayanları çəkirik
         let { data: allItems, error } = await window.supabaseClient
             .from('sales_history')
             .select('*')
             .eq('company_name', currentCompany)
-            .order('id', { ascending: false }) // Ən son əlavə olunanlar üstdə gəlsin
-            .limit(50); // Son 50 əməliyyat
+            .ilike('date', `${isoToday}%`) // Tarixi bugünkü günlə başlayanlar
+            .order('id', { ascending: false });
 
         if (error) {
             console.error("Supabase xətası:", error);
@@ -1566,13 +1574,10 @@ async function openCheckModal() {
         }
 
         allItems = allItems || [];
-        console.log("Bazadan gələn sətirlər:", allItems);
+        console.log("Bugünkü bazadan gələn sətirlər:", allItems);
 
         // Sistemin öz init qeydlərini çıxırıq
         let validItems = allItems.filter(i => i.type !== 'system_init');
-
-        // Sadəcə bugünkü tarixi yoxlamaq əvəzinə, gələn son məlumatları birbaşa göstərək 
-        // (vəya istəsəniz bütün siyahını görək ki, tarixlərin necə yazıldığını anlayaq)
         let todaySales = validItems.filter(i => i.type === 'sale');
 
         let totalCash = todaySales.reduce((sum, i) => sum + (Number(i.paid) || 0), 0);
@@ -1581,8 +1586,10 @@ async function openCheckModal() {
 
         let listHtml = "";
         if (validItems.length === 0) {
-            listHtml = `<p style="text-align:center; color:#888; margin:15px 0;">Heç bir əməliyyat tapılmadı. (currentCompany düzgündür?)</p>`;
-        } else {
+            listHtml = `<p style="text-align:center; color:#888; margin:15px 0;">Bugün (${isoToday}) heç bir əməliyyat tapılmadı.</p>`;
+        
+            // Qalan HTML qurğusu eyni qalır...
+   } else {
             listHtml = `<div style="margin-top:12px; border-top:1px solid #eee; padding-top:10px;">
                 <b style="font-size:12px; color:#636e72; display:block; margin-bottom:8px;">SON ƏMƏLİYYATLAR:</b>
                 <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
