@@ -1,4 +1,4 @@
-v2038. 1<!DOCTYPE html>
+v2039<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -410,44 +410,35 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
     await renderGlobalDebts(companyList);
 }*/
     select.innerHTML = "";
-select.innerHTML = "";
 
-// 1. Əgər siyahı hələ gəlməyibsə, "Yüklənir..." yazısını əlavə edirik
-if (!companyList || companyList.length === 0) {
+// 1. Əgər hələ real müəssisə yoxdursa və siyahı həqiqətən boşdursa, "Yüklənir..." göstəririk
+if (!companyList || companyList.length === 0 || (companyList.length === 1 && companyList[0] === "Müəssisə 1 və s.")) {
+    // Burada əgər hələ məlumat gəlməyibsə:
     let loadingOpt = document.createElement('option');
-    loadingOpt.id = "loadingOption"; // Unikal ID veririk ki, sonradan tapa bilək
     loadingOpt.value = "";
     loadingOpt.innerText = "Yüklənir...";
     loadingOpt.disabled = true;
     loadingOpt.selected = true;
     select.appendChild(loadingOpt);
-    
-    companyList = ["Müəssisə 1"]; // Ehtiyat olaraq
+} else {
+    // 2. Əgər real müəssisələr artıq gəlibsə, "Yüklənir..." QƏTİYYƏN yaradılmır!
+    companyList.forEach(c => {
+        let opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        if (c === currentCompany) opt.selected = true;
+        select.appendChild(opt);
+    });
 }
 
-// 2. Real müəssisələri siyahıya əlavə edirik
-companyList.forEach(c => {
-    let opt = document.createElement('option');
-    opt.value = c;
-    opt.innerText = c;
-    if (c === currentCompany) opt.selected = true;
-    select.appendChild(opt);
-});
-
-// 3. Əgər real məlumatlar artıq gəlibsə, "Yüklənir..." sətrini tapıb tamamilə silirik
-let loadingEl = document.getElementById("loadingOption");
-if (loadingEl && companyList.length > 0 && companyList[0] !== "Müəssisə 1") {
-    loadingEl.remove();
-}
-
-// Əgər currentCompany hələ təyin olunmayıbsa, ilkini seçirik
-if (!currentCompany && companyList.length > 0) {
+// Əgər currentCompany hələ təyin olunmayıbsa və siyahıda real element varsa
+if (!currentCompany && companyList.length > 0 && companyList[0] !== "Yüklənir...") {
     currentCompany = companyList[0];
     select.value = currentCompany;
 }
 
-await renderGlobalDebts(companyList);} 
-
+await renderGlobalDebts(companyList);
+} 
 function toggleGlobalDebts() {
     let box = document.getElementById('globalDebtContainer');
     let btn = document.getElementById('debtToggleBtn');
