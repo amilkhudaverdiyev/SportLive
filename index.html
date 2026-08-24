@@ -1,4 +1,4 @@
-v2039. 1<!DOCTYPE html>
+v2039. 2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -411,18 +411,21 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
 }*/
 // 1. Əvvəlcə select qutusunu təmizləyirik
 select.innerHTML = "";
+// 1. Əvvəlcə select qutusunu tamamilə təmizləyirik
+select.innerHTML = "";
 
-// 2. Əgər siyahı hələ gəlməyibsə və ya boşdursa
-if (!companyList || !Array.isArray(companyList) || companyList.length === 0) {
+// 2. Yalnız və yalnız həqiqətən məlumat yoxdursa "Yüklənir..." göstəririk
+const hasCompanies = Array.isArray(companyList) && companyList.length > 0;
+
+if (!hasCompanies) {
     let loadingOpt = document.createElement('option');
     loadingOpt.value = "";
     loadingOpt.innerText = "Yüklənir...";
-    loadingOpt.disabled = true;   // Seçilməsini tamamilə bloklayır
-    loadingOpt.hidden = true;     // İstəyə görə siyahıda ümumiyyətlə görünməməsini təmin edir
+    loadingOpt.disabled = true;
     loadingOpt.selected = true;
     select.appendChild(loadingOpt);
 } else {
-    // 3. Real müəssisələri əlavə edirik
+    // 3. Real müəssisələr varsa, "Yüklənir..." BİR DƏFƏ BELƏ YARadılmır
     companyList.forEach(c => {
         let opt = document.createElement('option');
         opt.value = c;
@@ -440,9 +443,10 @@ if (!companyList || !Array.isArray(companyList) || companyList.length === 0) {
     }
 }
 
-if (typeof renderGlobalDebts === 'function' && companyList && companyList.length > 0) {
+if (typeof renderGlobalDebts === 'function' && hasCompanies) {
     await renderGlobalDebts(companyList);
-}} 
+}
+} 
 
 function toggleGlobalDebts() {
     let box = document.getElementById('globalDebtContainer');
