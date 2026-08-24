@@ -1,4 +1,4 @@
-v2039. 32<!DOCTYPE html>
+v2040<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -338,7 +338,7 @@ async function syncSalesCompaniesToCompaniesTable(salesCompanies, existingCompan
 
 // 2. Müəssisələrin oxunması - Bütün müəssisələri 'companies' cədvəlindən çəkir
 // 2. Yenilənmiş initWelcomeScreen funksiyası
-async function initWelcomeScreen() {
+/*async function initWelcomeScreen() {
     let select = document.getElementById('welcomeCompanySelect');
     if (!select) return;
 
@@ -398,19 +398,6 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
         companyList = ["Müəssisə 1"];
     }
 
-    /*select.innerHTML = "";
-    companyList.forEach(c => {
-        let opt = document.createElement('option');
-        opt.value = c;
-        opt.innerText = c;
-        if (c === currentCompany) opt.selected = true;
-        select.appendChild(opt);
-    });
-
-    await renderGlobalDebts(companyList);
-}*/
-// 1. Əvvəlcə select qutusunu təmizləyirik
-select.innerHTML = "";
 // 1. Əvvəlcə select qutusunu tamamilə təmizləyirik
 select.innerHTML = "";
 
@@ -446,7 +433,92 @@ if (!hasCompanies) {
 if (typeof renderGlobalDebts === 'function' && hasCompanies) {
     await renderGlobalDebts(companyList);
 }
-} 
+} */
+async function initWelcomeScreen() {
+    let select = document.getElementById('welcomeCompanySelect');
+    let loadingMessage = document.getElementById('loadingMessage'); // Əgər HTML-də yaratmısansa
+    if (!select) return;
+
+    // 1. Yüklənən zaman select-i kilidləyirik, yazını göstəririk
+    select.disabled = true;
+    if (loadingMessage) loadingMessage.style.display = 'inline'; // və ya 'block'
+
+    let companiesMap = {};
+    let existingCompaniesFromTable = [];
+    let salesCompaniesList = [];
+
+    if (window.supabaseClient) {
+        try {
+            // A) 'companies' cədvəlini oxuyuruq
+            let { data: compData, error: cErr } = await window.supabaseClient
+                .from('companies')
+                .select('name');
+
+            if (!cErr && compData) {
+                compData.forEach(item => {
+                    if (item.name) {
+                        let trimmed = item.name.trim();
+                        existingCompaniesFromTable.push(trimmed);
+                        companiesMap[trimmed.toLowerCase()] = trimmed;
+                    }
+                });
+            }
+
+            // B) 'sales_history' cədvəlini oxuyuruq
+            let { data: salesData, error: sErr } = await window.supabaseClient
+                .from('sales_history')
+                .select('company_name');
+
+            if (!sErr && salesData) {
+                salesData.forEach(item => {
+                    if (item.company_name) {
+                        let trimmed = item.company_name.trim();
+                        if (!salesCompaniesList.includes(trimmed)) {
+                            salesCompaniesList.push(trimmed);
+                        }
+                        companiesMap[trimmed.toLowerCase()] = trimmed;
+                    }
+                });
+            }
+
+            await syncSalesCompaniesToCompaniesTable(salesCompaniesList, existingCompaniesFromTable);
+
+        } catch (e) {
+            console.error("Müəssisələr sinkronizasiya edilərkən xəta:", e);
+        }
+    }
+
+    let companyList = Object.values(companiesMap).sort();
+    if (companyList.length === 0) {
+        companyList = ["Müəssisə 1"];
+    }
+
+    // 2. Məlumatlar gəldi, siyahını təmizləyib doldururuq
+    select.innerHTML = "";
+    
+    companyList.forEach(c => {
+        let opt = document.createElement('option');
+        opt.value = c;
+        opt.innerText = c;
+        if (c === currentCompany) {
+            opt.selected = true;
+        }
+        select.appendChild(opt);
+    });
+
+    if (!currentCompany && companyList.length > 0) {
+        currentCompany = companyList[0];
+        select.value = currentCompany;
+    }
+
+    // 3. İŞ BİTDİ: Select-in kilidini açırıq, "Yüklənir..." yazısını gizlədirik
+    select.disabled = false;
+    if (loadingMessage) loadingMessage.style.display = 'none';
+
+    if (typeof renderGlobalDebts === 'function' && companyList.length > 0) {
+        await renderGlobalDebts(companyList);
+    }
+}
 
 function toggleGlobalDebts() {
     let box = document.getElementById('globalDebtContainer');
