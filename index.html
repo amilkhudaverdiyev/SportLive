@@ -1,4 +1,4 @@
-v2039<!DOCTYPE html>
+v2039. 1<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -409,36 +409,41 @@ select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
 
     await renderGlobalDebts(companyList);
 }*/
-    select.innerHTML = "";
+// 1. Əvvəlcə select qutusunu təmizləyirik
+select.innerHTML = "";
 
-// 1. Əgər hələ real müəssisə yoxdursa və siyahı həqiqətən boşdursa, "Yüklənir..." göstəririk
-if (!companyList || companyList.length === 0 || (companyList.length === 1 && companyList[0] === "Müəssisə 1 və s.")) {
-    // Burada əgər hələ məlumat gəlməyibsə:
+// 2. Əgər siyahı hələ gəlməyibsə və ya boşdursa
+if (!companyList || !Array.isArray(companyList) || companyList.length === 0) {
     let loadingOpt = document.createElement('option');
     loadingOpt.value = "";
     loadingOpt.innerText = "Yüklənir...";
-    loadingOpt.disabled = true;
+    loadingOpt.disabled = true;   // Seçilməsini tamamilə bloklayır
+    loadingOpt.hidden = true;     // İstəyə görə siyahıda ümumiyyətlə görünməməsini təmin edir
     loadingOpt.selected = true;
     select.appendChild(loadingOpt);
 } else {
-    // 2. Əgər real müəssisələr artıq gəlibsə, "Yüklənir..." QƏTİYYƏN yaradılmır!
+    // 3. Real müəssisələri əlavə edirik
     companyList.forEach(c => {
         let opt = document.createElement('option');
         opt.value = c;
         opt.innerText = c;
-        if (c === currentCompany) opt.selected = true;
+        if (c === currentCompany) {
+            opt.selected = true;
+        }
         select.appendChild(opt);
     });
+
+    // Əgər currentCompany hələ təyin olunmayıbsa, ilkini seçirik
+    if (!currentCompany && companyList.length > 0) {
+        currentCompany = companyList[0];
+        select.value = currentCompany;
+    }
 }
 
-// Əgər currentCompany hələ təyin olunmayıbsa və siyahıda real element varsa
-if (!currentCompany && companyList.length > 0 && companyList[0] !== "Yüklənir...") {
-    currentCompany = companyList[0];
-    select.value = currentCompany;
-}
+if (typeof renderGlobalDebts === 'function' && companyList && companyList.length > 0) {
+    await renderGlobalDebts(companyList);
+}} 
 
-await renderGlobalDebts(companyList);
-} 
 function toggleGlobalDebts() {
     let box = document.getElementById('globalDebtContainer');
     let btn = document.getElementById('debtToggleBtn');
