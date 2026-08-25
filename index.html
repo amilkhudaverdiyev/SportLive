@@ -1,4 +1,4 @@
-Version-14.5<!DOCTYPE html>
+Version-14.7<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -209,20 +209,22 @@ Version-14.5<!DOCTYPE html>
         <label style="color: var(--s);">Ödənilən Məbləğ (₼):</label>
         <input type="text" id="paidInp" inputmode="decimal" style="border-color: var(--s);" placeholder="0.00">
 
-       <div class="btn-box">
-    <!-- 1. HESABLA düyməsi -->
+     <div class="btn-box">
+    <!-- 1. İlkin olaraq yalnız HESABLA düyməsi görünür -->
     <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
     
-    <!-- 2. Yenidən hesabla və Yadda saxla -->
-    <button id="resetBtn" class="b-clr" onclick="resetToEditMode()" style="display: none; background: var(--gold); color: #000; margin-bottom: 8px;">🔄 YENİDƏN HESABLA</button>
-    <button id="saveBtn" class="b-clr" onclick="saveData()" style="display: none; background: var(--s); color: #fff; font-weight: bold; margin-bottom: 8px;">💾 YADDA SAXLA</button>
+    <!-- 2. HESABLA-dan sonra çıxan qutu (Yenidən hesabla və Yadda saxla) -->
+    <div id="preSaveButtons" style="display: none; display: flex; gap: 8px; width: 100%;">
+        <button class="b-clr" onclick="resetToEditMode()" style="flex: 1; background: var(--gold); color: #000;">🔄 YENİDƏN HESABLA</button>
+        <button class="b-clr" onclick="saveData()" style="flex: 1; background: var(--s); color: #fff; font-weight: bold;">💾 YADDA SAXLA</button>
+    </div>
 
-    <!-- 3. Word və WhatsApp (Bunlar birbaşa id ilə idarə olunacaq) -->
-    <button id="wb" class="b-word" onclick="word()" style="display: none; width: 100%; margin-bottom: 8px;">WORD KİMİ SAXLA</button>
-    <button id="sb" class="b-share" onclick="wa()" style="display: none; background: var(--w); width: 100%; margin-bottom: 8px;">WHATSAPP-LA GÖNDƏR</button>
-    
-    <!-- 4. Yeni Satış -->
-    <button id="newSaleBtn" class="b-clr" onclick="clr()" style="display: none; background: var(--d); color: white; width: 100%;">YENİ SATIŞ</button>
+    <!-- 3. YADDA SAXLA-dan sonra çıxan qutu (Word, WhatsApp və Yeni Satış) -->
+    <div id="postSaveButtons" style="display: none; flex-direction: column; gap: 8px; width: 100%;">
+        <button id="wb" class="b-word" onclick="word()" style="width: 100%;">WORD KİMİ SAXLA</button>
+        <button id="sb" class="b-share" onclick="wa()" style="background: var(--w); width: 100%;">WHATSAPP-LA GÖNDƏR</button>
+        <button class="b-clr" onclick="clr()" style="background: var(--d); color: white; width: 100%;">YENİ SATIŞ</button>
+    </div>
 </div>
 
         <div id="res" class="receipt">
@@ -1573,13 +1575,14 @@ async function saveData() {
 
     updateDash(); */
 
-    // --- BURADA WORD VƏ WHATSAPP MƏCBURİ AÇILIR ---
-    document.getElementById('resetBtn').style.display = 'none'; // Yenidən hesabla gizlənir
-    document.getElementById('saveBtn').style.display = 'none'; // Yadda saxla gizlənir
+    alert("Məlumatlar uğurla yadda saxlanıldı!");
+
+    // --- SƏLİQƏLİ ARDICILLIQ ---
+    document.getElementById('calcBtn').style.display = 'none';
+    document.getElementById('preSaveButtons').style.display = 'none'; // Yenidən hesabla və yadda saxla gizlənir
     
-    document.getElementById('wb').style.display = 'block'; // WORD GÖRÜNÜR
-    document.getElementById('sb').style.display = 'block'; // WHATSAPP GÖRÜNÜR
-    document.getElementById('newSaleBtn').style.display = 'block'; // YENİ SATIŞ GÖRÜNÜR
+    let postBox = document.getElementById('postSaveButtons');
+    postBox.style.display = 'flex'; // Word, WhatsApp və Yeni Satış alt-alta səliqəli açılır
 
     updateDash();
 }
