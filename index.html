@@ -1,4 +1,4 @@
-Version-22<!DOCTYPE html>
+Version-22NEW<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1411,24 +1411,27 @@ let saleData = {
     updateDash();
 }
 function resetToEditMode() {
-    // 1. Nəticə qutusunu gizlədirik (əgər varsa)
+    // 1. Nəticə qutusunu gizlədirik
     let resBox = document.getElementById('res');
     if (resBox) resBox.style.display = 'none';
 
-    // 2. Düymələri təhlükəsiz şəkildə idarə edirik (Element varsa style dəyişir, yoxdursa xəta vermir)
+    // 2. DÜYMƏLƏRİN VƏZİYYƏTİNİ DƏQİQ TƏNZİMLƏYİRİK:
+    
+    // HESABLA düyməsi GÖRÜNMƏLİDİR
     let calcBtn = document.getElementById('calcBtn');
+    if (calcBtn) calcBtn.style.display = 'block';      
+
+    // YENİDƏN HESABLA düyməsi MÜTLƏQ GİZLƏNMƏLİDİR
     let resetBtn = document.getElementById('resetBtn');
+    if (resetBtn) resetBtn.style.display = 'none';   
+
+    // YADDA SAXLA düyməsi MÜTLƏQ GİZLƏNMƏLİDİR
     let saveBtn = document.getElementById('saveBtn');
+    if (saveBtn) saveBtn.style.display = 'none';     
+
+    // YENİ SATIŞ düyməsi də gizli qalmalıdır
     let newSaleBtn = document.getElementById('newSaleBtn');
-
-    if (calcBtn) calcBtn.style.display = 'block';      // Yalnız HESABLA qayıdır
-    if (resetBtn) resetBtn.style.display = 'none';   // Yenidən hesabla gizlənir
-    if (saveBtn) saveBtn.style.display = 'none';     // Yadda saxla gizlənir
-    if (newSaleBtn) newSaleBtn.style.display = 'none'; // Yeni satış gizli qalır
-
-    // Əgər dəyişdirmək istədiyiniz başqa elementlər varsa, onları da belə yoxlaya bilərsiniz:
-    // let otherEl = document.getElementById('elementin_adi');
-    // if (otherEl) otherEl.style.display = 'none';
+    if (newSaleBtn) newSaleBtn.style.display = 'none'; 
 }
    /* async function calc() {
     let name = document.getElementById('n').value.trim();
