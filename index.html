@@ -1,4 +1,4 @@
-Version-Mayanew21<!DOCTYPE html>
+Version-Mayanew221<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1571,6 +1571,8 @@ async function saveData() {
 
     alert("Məlumatlar uğurla yadda saxlanıldı!");
 // --- BURADA XALİS XEYİRİ DƏRHAL YENİLƏYİRİK ---
+   await new Promise(resolve => setTimeout(resolve, 300));
+
     if (typeof calculateProfit === 'function') {
         await calculateProfit();
     }
