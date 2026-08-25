@@ -1,4 +1,4 @@
-Version-13.3<!DOCTYPE html>
+Version-14<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1484,18 +1484,26 @@ function resetToEditMode() {
     document.getElementById('preSaveButtons').style.display = 'flex';   // Yenidən hesabla və Yadda saxla görünür
     document.getElementById('postSaveButtons').style.display = 'none';  // Word, WhatsApp hələ gizlidir
 }
+// Word funksiyası
 function word() {
-        let weightList = ""; 
-        cur.raw.forEach((w, i) => { weightList += `<p style="margin:0;">${i+1}) ${parseFloat(w).toFixed(2)} kq</p>`; });
-        const content = `<div style="font-family:Arial; width:350px; border:1px solid #ccc; padding:20px;"><h2 style="text-align:center;">SATIŞ QƏBZİ</h2><p><b>Alıcı:</b> ${cur.name}</p><p><b>Tarix:</b> ${cur.date}</p><hr>${weightList}<hr><h3>CƏM: ${cur.total.toFixed(2)} ₼</h3></div>`;
-        const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
-        const link = document.createElement('a'); link.href = URL.createObjectURL(blob); link.download = `${cur.name}_qebz.doc`; link.click();
-    }
+    if (!window.cur) return alert("Əvvəlcə məlumatı yadda saxlayın!");
+    let weightList = ""; 
+    window.cur.raw.forEach((w, i) => { weightList += `<p style="margin:0;">${i+1}) ${parseFloat(w).toFixed(2)} kq</p>`; });
+    const content = `<div style="font-family:Arial; width:350px; border:1px solid #ccc; padding:20px;"><h2 style="text-align:center;">SATIŞ QƏBZİ</h2><p><b>Alıcı:</b> ${window.cur.name}</p><p><b>Tarix:</b> ${window.cur.date}</p><hr>${weightList}<hr><h3>CƏM: ${window.cur.total.toFixed(2)} ₼</h3></div>`;
+    const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
+    const link = document.createElement('a'); 
+    link.href = URL.createObjectURL(blob); 
+    link.download = `${window.cur.name}_qebz.doc`; 
+    link.click();
+}
 
-    function wa() {
-        let msg = `📄 *SATIŞ QƏBZİ*\n👤 *Alıcı:* ${cur.name}\n🔥 *CƏM:* ${cur.total.toFixed(2)} ₼`;
-        window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-    }
+
+// WhatsApp funksiyası
+function wa() {
+    if (!window.cur) return alert("Əvvəlcə məlumatı yadda saxlayın!");
+    let msg = `📄 *SATIŞ QƏBZİ*\n👤 *Alıcı:* ${window.cur.name}\n🔥 *CƏM:* ${window.cur.total.toFixed(2)} ₼`;
+    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
 async function saveData() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
@@ -1526,6 +1534,7 @@ async function saveData() {
         type: 'sale',
         is_deleted: false
     };
+    window.cur=saleData;
 
     if(window.supabaseClient) {
         try {
