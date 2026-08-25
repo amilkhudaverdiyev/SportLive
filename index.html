@@ -1,4 +1,4 @@
-Version-loadr<!DOCTYPE html>
+Version-loadr11<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1018,7 +1018,7 @@ async function loadCompanyData() {
         await calculateProfit();
     }
 */
-    async function loadAndRenderMayaTable() {
+   /* async function loadAndRenderMayaTable() {
     // Digər funksiyalarınız kimi birbaşa currentCompany-ni götürürük
     let companyId = currentCompany;
 
@@ -1048,7 +1048,35 @@ async function loadCompanyData() {
     document.getElementById('m-final-total').innerText = total.toFixed(2);
 }
 
+*/
+    async function loadAndRenderMayaTable() {
+        let companyId = getCurrentCompany();
 
+        let { data: mayaItems, error } = await window.supabaseClient
+            .from('maya_items')
+            .select('*')
+            .eq('company_name', companyId);
+
+        let body = document.getElementById('mayaBody');
+        let total = 0;
+        body.innerHTML = "";
+
+        if (error || !mayaItems) return;
+
+        mayaItems.forEach((item) => {
+            let cemValue = parseFloat(item.cem) || 0;
+            total += cemValue;
+            body.innerHTML += `<tr>
+                <td>${item.kat}</td>
+                <td>${item.ad}</td>
+                <td>${item.say}</td>
+                <td>${parseFloat(item.qiymet).toFixed(2)}</td>
+                <td>${cemValue.toFixed(2)}</td>
+                <td><button onclick="delMaya(${item.id})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px;">X</button></td>
+            </tr>`;
+        });
+        document.getElementById('m-final-total').innerText = total.toFixed(2);
+    }
 async function openCheckModal() {
     let checkContent = document.getElementById('checkContent');
     let checkModal = document.getElementById('checkModal');
