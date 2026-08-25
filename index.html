@@ -1,4 +1,4 @@
-Version-13.1<!DOCTYPE html>
+Version-13.2<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -209,16 +209,16 @@ Version-13.1<!DOCTYPE html>
         <input type="text" id="paidInp" inputmode="decimal" style="border-color: var(--s);" placeholder="0.00">
 
         <div class="btn-box">
-    <!-- 1. İlkin olaraq yalnız bu düymə görünür -->
+    <!-- İlkin olaraq səhifə açıldıqda ancaq bu görünür -->
     <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
     
-    <!-- 2. Hesablandıqdan sonra açılacaq 2 düymə (Əvvəlcə gizlidir: display: none;) -->
-    <div id="actionButtons" style="display: none; display: flex; gap: 8px;">
+    <!-- Hesablandıqdan sonra açılacaq 2 düymə (Başlanğıcda gizlidir) -->
+    <div id="actionButtons" style="display: none; gap: 8px;">
         <button class="b-clr" onclick="resetToEditMode()" style="flex: 1; background: var(--gold); color: #000;">🔄 YENİDƏN HESABLA</button>
         <button class="b-clr" onclick="saveData()" style="flex: 1; background: var(--s); color: #fff; font-weight: bold;">💾 YADDA SAXLA</button>
     </div>
 
-    <!-- 3. Yadda saxlandıqdan sonra açılacaq Word, WhatsApp və Yeni Satış düymələri (Əvvəlcə gizlidir) -->
+    <!-- Yadda saxlandıqdan sonra açılacaq Word, WhatsApp və Yeni Satış düymələri (Başlanğıcda gizlidir) -->
     <div id="exportButtons" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
         <button class="b-clr" onclick="clr()" style="background: var(--d); color: white;">YENİ SATIŞ</button>
         <button id="wb" class="b-word" onclick="word()">WORD KİMİ SAXLA</button>
