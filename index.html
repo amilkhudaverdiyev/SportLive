@@ -1,4 +1,4 @@
-Version-12<!DOCTYPE html>
+Version-13<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -209,11 +209,22 @@ Version-12<!DOCTYPE html>
         <input type="text" id="paidInp" inputmode="decimal" style="border-color: var(--s);" placeholder="0.00">
 
         <div class="btn-box">
-            <button class="b-calc" onclick="calc()">HESABla VƏ YADDA SAXLA</button>
-            <button id="wb" class="b-word" onclick="word()">WORD KİMİ SAXLA</button>
-            <button id="sb" class="b-share" onclick="wa()">WHATSAPP-LA GÖNDƏR</button>
-            <button class="b-clr" onclick="clr()">YENİ SATIŞ</button>
-        </div>
+    <!-- İlkin Hesabla düyməsi (Yaddaşa yazmır, sadəcə hesablayır və önizləmə açır) -->
+    <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
+    
+    <!-- Hesablandıqdan sonra çıxan 2 düymə (Əvvəlcə gizlidir) -->
+    <div id="actionButtons" style="display: none; display: flex; gap: 8px;">
+        <button class="b-clr" onclick="resetToEditMode()" style="flex: 1; background: var(--gold); color: #000;">🔄 YENİDƏN HESABLA</button>
+        <button class="b-clr" onclick="saveData()" style="flex: 1; background: var(--s); color: #fff; font-weight: bold;">💾 YADDA SAXLA</button>
+    </div>
+
+    <!-- Yadda saxlandıqdan sonra çıxacaq ixrac və yeni satış düymələri -->
+    <div id="exportButtons" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
+        <button class="b-clr" onclick="clr()" style="background: var(--d); color: white;">YENİ SATIŞ</button>
+        <button id="wb" class="b-word" onclick="word()">WORD KİMİ SAXLA</button>
+        <button id="sb" class="b-share" onclick="wa()" style="background: var(--w);">WHATSAPP-LA GÖNDƏR</button>
+    </div>
+</div>
 
         <div id="res" class="receipt">
             <div style="text-align:center; font-weight:bold; padding-bottom:5px; border-bottom:1px solid #eee;">SATIŞ QƏBZİ</div>
@@ -1192,7 +1203,7 @@ async function finalDelete(id) {
     };
 
     
-async function calc() {
+/*async function calc() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
     let extra = parseInt(document.getElementById('e').value) || 0;
@@ -1228,28 +1239,7 @@ let saleData = {
         is_deleted: false
     };
     // Supabase inteqrasiyası
-  /*  if(window.supabaseClient) {
-        try {
-            await window.supabaseClient.from('sales_history').insert([{ 
-                company_name: currentCompany, 
-                name: name, 
-                extra: extra,
-                sum: totalWeight,
-                fire: fire,
-                net: netWeight,
-                total: totalSum, 
-                price: price, 
-                paid: paid, 
-                debt: debt,
-                date: new Date().toISOString(),
-                raw: weightsText,
-                type: 'sale'
-            }]);
-        } catch(e) {
-            console.error("Supabase xətası:", e);
-        }
-    }
-*/
+  
     if(window.supabaseClient) {
         try {
             if (window.currentEditId) {
@@ -1309,7 +1299,137 @@ let saleData = {
 
     updateDash();
 }
-    function word() {
+    */
+async function calc() {
+    let name = document.getElementById('n').value.trim();
+    let price = parseFloat(document.getElementById('p').value) || 0;
+    let extra = parseInt(document.getElementById('e').value) || 0;
+    let paid = parseFloat(document.getElementById('paidInp').value) || 0;
+    let weightsText = document.getElementById('l').value;
+
+    if(!name) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+
+    let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
+    let totalWeight = weights.reduce((a, b) => a + b, 0);
+    
+    // 1% Faiz (İtki) və Xalis çəki hesabı
+    let fire = totalWeight * 0.01;
+    let netWeight = totalWeight - fire;
+    
+    let totalSum = netWeight * price;
+    let debt = totalSum - paid;
+    let currentDateStr = new Date().toLocaleString('sv-SE').replace('T', ' ');
+
+    // Qəbzin HTML-nin yığılması və ekranda göstərilməsi
+    let formattedWeights = weights.map((w, i) => `${i + 1}. ${w.toFixed(2)}`).join('<br>');
+
+    document.getElementById('r-top').innerHTML = `
+        <div class="r-row"><span>Alıcı:</span><b>${name}</b></div>
+        <div class="r-row"><span>Tarix:</span><span>${currentDateStr}</span></div>
+    `;
+    
+    document.getElementById('r-weights').innerHTML = formattedWeights;
+    
+    document.getElementById('r-bottom').innerHTML = `
+        <div class="r-row"><span>Ümumi Çəki:</span><span>${totalWeight.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Faiz (1%):</span><span>-${fire.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Qiymət:</span><span>${price.toFixed(2)} ₼</span></div>
+        <div class="r-row"><span>Əlavə Say:</span><span>${extra}</span></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row"><b>Xalis:</b><b>${netWeight.toFixed(3)} kq</b></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row" style="color:var(--s);"><span>Ödənildi:</span><span>${paid.toFixed(2)} ₼</span></div>
+        <div class="r-row" style="color:var(--d);"><span>Borc:</span><span>${debt.toFixed(2)} ₼</span></div>
+    `;
+    
+    document.getElementById('r-total').innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
+    
+    // Qəbzi göstər
+    document.getElementById('res').style.display = 'block';
+    
+    // HESABLA düyməsini gizlət, yerində "Yenidən hesabla" və "Yadda saxla" düymələrini aç
+    document.getElementById('calcBtn').style.display = 'none';
+    document.getElementById('actionButtons').style.display = 'flex';
+}
+async function saveData() {
+    let name = document.getElementById('n').value.trim();
+    let price = parseFloat(document.getElementById('p').value) || 0;
+    let extra = parseInt(document.getElementById('e').value) || 0;
+    let paid = parseFloat(document.getElementById('paidInp').value) || 0;
+    let weightsText = document.getElementById('l').value;
+
+    let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
+    let totalWeight = weights.reduce((a, b) => a + b, 0);
+    let fire = totalWeight * 0.01;
+    let netWeight = totalWeight - fire;
+    let totalSum = netWeight * price;
+    let debt = totalSum - paid;
+
+    let saleData = { 
+        company_name: currentCompany, 
+        name: name, 
+        extra: extra,
+        sum: totalWeight,
+        fire: fire,
+        net: netWeight,
+        total: totalSum, 
+        price: price, 
+        paid: paid, 
+        debt: debt,
+        date: new Date().toISOString(),
+        raw: weightsText,
+        type: 'sale',
+        is_deleted: false
+    };
+
+    // Supabase inteqrasiyası (Yalnız burda bazaya yazılır)
+    if(window.supabaseClient) {
+        try {
+            if (window.currentEditId) {
+                let { error } = await window.supabaseClient
+                    .from('sales_history')
+                    .update(saleData)
+                    .eq('id', window.currentEditId);
+
+                if (error) throw error;
+                window.currentEditId = null; 
+            } else {
+                let { error } = await window.supabaseClient
+                    .from('sales_history')
+                    .insert([saleData]);
+
+                if (error) throw error;
+            }
+        } catch(e) {
+            console.error("Supabase xətası:", e);
+            alert("Bazaya yazılarkən xəta baş verdi: " + e.message);
+            return;
+        }
+    }
+
+    alert("Məlumatlar uğurla yadda saxlanıldı!");
+
+    // Yadda saxlanıldıqdan sonra bu 2 düyməni gizlət, Word, WhatsApp və Yeni Satış düymələrini aç
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('exportButtons').style.display = 'flex';
+
+    updateDash();
+}
+function resetToEditMode() {
+    // Qəbzi gizlət ki, xanalarda rahat düzəliş edə biləsən
+    document.getElementById('res').style.display = 'none';
+    
+    // Düymələri ilkin vəziyyətinə qaytar (yenidən "HESABLA" düyməsi görünəcək)
+    document.getElementById('calcBtn').style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'none';
+    document.getElementById('exportButtons').style.display = 'none';
+    
+    // Alıcı adına fokuslan
+    let firstInput = document.getElementById('n');
+    if (firstInput) firstInput.focus();
+}
+
+function word() {
         let weightList = ""; 
         cur.raw.forEach((w, i) => { weightList += `<p style="margin:0;">${i+1}) ${parseFloat(w).toFixed(2)} kq</p>`; });
         const content = `<div style="font-family:Arial; width:350px; border:1px solid #ccc; padding:20px;"><h2 style="text-align:center;">SATIŞ QƏBZİ</h2><p><b>Alıcı:</b> ${cur.name}</p><p><b>Tarix:</b> ${cur.date}</p><hr>${weightList}<hr><h3>CƏM: ${cur.total.toFixed(2)} ₼</h3></div>`;
@@ -1577,8 +1697,8 @@ async function clrPaymentsH() {
         if (debtVal !== 0) {
             let isCredit = debtVal < 0;
             let safeName = d.originalName.replace(/'/g, "\\'");
-            
-          let borderColor = isCredit ? 'var(--s)' : 'var(--d)';
+
+            let borderColor = isCredit ? 'var(--s)' : 'var(--d)';
             
             html += `<div class="debt-item" style="border-left-color: ${borderColor};">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
