@@ -1,4 +1,4 @@
-Version-13.2<!DOCTYPE html>
+Version-13.3<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -208,21 +208,26 @@ Version-13.2<!DOCTYPE html>
         <label style="color: var(--s);">Ödənilən Məbləğ (₼):</label>
         <input type="text" id="paidInp" inputmode="decimal" style="border-color: var(--s);" placeholder="0.00">
 
-        <div class="btn-box">
-    <!-- İlkin olaraq səhifə açıldıqda ancaq bu görünür -->
+       <div class="btn-box">
+    <!-- 1. İlkin olaraq yalnız HESABLA görünür -->
     <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
     
-    <!-- Hesablandıqdan sonra açılacaq 2 düymə (Başlanğıcda gizlidir) -->
-    <div id="actionButtons" style="display: none; gap: 8px;">
-        <button class="b-clr" onclick="resetToEditMode()" style="flex: 1; background: var(--gold); color: #000;">🔄 YENİDƏN HESABLA</button>
-        <button class="b-clr" onclick="saveData()" style="flex: 1; background: var(--s); color: #fff; font-weight: bold;">💾 YADDA SAXLA</button>
-    </div>
+    <!-- 2. Hesablandıqdan sonra çıxan düymələr qutusu -->
+    <div id="actionButtons" style="display: none; flex-direction: column; gap: 8px;">
+        
+        <!-- Yenidən hesabla və Yadda saxla (Əvvəl görünür, yadda saxlayandan sonra gizlənəcək) -->
+        <div id="preSaveButtons" style="display: flex; gap: 8px;">
+            <button class="b-clr" onclick="resetToEditMode()" style="flex: 1; background: var(--gold); color: #000;">🔄 YENİDƏN HESABLA</button>
+            <button class="b-clr" onclick="saveData()" style="flex: 1; background: var(--s); color: #fff; font-weight: bold;">💾 YADDA SAXLA</button>
+        </div>
 
-    <!-- Yadda saxlandıqdan sonra açılacaq Word, WhatsApp və Yeni Satış düymələri (Başlanğıcda gizlidir) -->
-    <div id="exportButtons" style="display: none; flex-direction: column; gap: 8px; margin-top: 8px;">
-        <button class="b-clr" onclick="clr()" style="background: var(--d); color: white;">YENİ SATIŞ</button>
-        <button id="wb" class="b-word" onclick="word()">WORD KİMİ SAXLA</button>
-        <button id="sb" class="b-share" onclick="wa()" style="background: var(--w);">WHATSAPP-LA GÖNDƏR</button>
+        <!-- Word, WhatsApp və Yeni Satış (Yadda saxlayandan sonra görünəcək) -->
+        <div id="postSaveButtons" style="display: none; flex-direction: column; gap: 8px;">
+            <button id="wb" class="b-word" onclick="word()">WORD KİMİ SAXLA</button>
+            <button id="sb" class="b-share" onclick="wa()" style="background: var(--w);">WHATSAPP-LA GÖNDƏR</button>
+            <button class="b-clr" onclick="clr()" style="background: var(--d); color: white;">YENİ SATIŞ</button>
+        </div>
+        
     </div>
 </div>
 
@@ -1300,7 +1305,7 @@ let saleData = {
     updateDash();
 }
     */
-async function calc() {
+/*async function calc() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
     let extra = parseInt(document.getElementById('e').value) || 0;
@@ -1350,8 +1355,9 @@ async function calc() {
     // HESABLA düyməsini gizlət, yerində "Yenidən hesabla" və "Yadda saxla" düymələrini aç
     document.getElementById('calcBtn').style.display = 'none';
     document.getElementById('actionButtons').style.display = 'flex';
-}
-async function saveData() {
+} */
+    
+/*async function saveData() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
     let extra = parseInt(document.getElementById('e').value) || 0;
@@ -1428,7 +1434,56 @@ function resetToEditMode() {
     let firstInput = document.getElementById('n');
     if (firstInput) firstInput.focus();
 }
+*/
+    async function calc() {
+    let name = document.getElementById('n').value.trim();
+    let price = parseFloat(document.getElementById('p').value) || 0;
+    let extra = parseInt(document.getElementById('e').value) || 0;
+    let paid = parseFloat(document.getElementById('paidInp').value) || 0;
+    let weightsText = document.getElementById('l').value;
 
+    if(!name) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+
+    let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
+    let totalWeight = weights.reduce((a, b) => a + b, 0);
+    
+    let fire = totalWeight * 0.01;
+    let netWeight = totalWeight - fire;
+    let totalSum = netWeight * price;
+    let debt = totalSum - paid;
+    let currentDateStr = new Date().toLocaleString('sv-SE').replace('T', ' ');
+
+    let formattedWeights = weights.map((w, i) => `${i + 1}. ${w.toFixed(2)}`).join('<br>');
+
+    document.getElementById('r-top').innerHTML = `
+        <div class="r-row"><span>Alıcı:</span><b>${name}</b></div>
+        <div class="r-row"><span>Tarix:</span><span>${currentDateStr}</span></div>
+    `;
+    
+    document.getElementById('r-weights').innerHTML = formattedWeights;
+    
+    document.getElementById('r-bottom').innerHTML = `
+        <div class="r-row"><span>Ümumi Çəki:</span><span>${totalWeight.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Faiz (1%):</span><span>-${fire.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Qiymət:</span><span>${price.toFixed(2)} ₼</span></div>
+        <div class="r-row"><span>Əlavə Say:</span><span>${extra}</span></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row"><b>Xalis:</b><b>${netWeight.toFixed(3)} kq</b></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row" style="color:var(--s);"><span>Ödənildi:</span><span>${paid.toFixed(2)} ₼</span></div>
+        <div class="r-row" style="color:var(--d);"><span>Borc:</span><span>${debt.toFixed(2)} ₼</span></div>
+    `;
+    
+    document.getElementById('r-total').innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
+    
+    document.getElementById('res').style.display = 'block';
+    
+    // Düymə görünüşlərini tənzimləyirik
+    document.getElementById('calcBtn').style.display = 'none';
+    document.getElementById('actionButtons').style.display = 'flex';
+    document.getElementById('preSaveButtons').style.display = 'flex';   // Yenidən hesabla və Yadda saxla görünür
+    document.getElementById('postSaveButtons').style.display = 'none';  // Word, WhatsApp hələ gizlidir
+}
 function word() {
         let weightList = ""; 
         cur.raw.forEach((w, i) => { weightList += `<p style="margin:0;">${i+1}) ${parseFloat(w).toFixed(2)} kq</p>`; });
@@ -1441,7 +1496,108 @@ function word() {
         let msg = `📄 *SATIŞ QƏBZİ*\n👤 *Alıcı:* ${cur.name}\n🔥 *CƏM:* ${cur.total.toFixed(2)} ₼`;
         window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     }
+async function saveData() {
+    let name = document.getElementById('n').value.trim();
+    let price = parseFloat(document.getElementById('p').value) || 0;
+    let extra = parseInt(document.getElementById('e').value) || 0;
+    let paid = parseFloat(document.getElementById('paidInp').value) || 0;
+    let weightsText = document.getElementById('l').value;
 
+    let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
+    let totalWeight = weights.reduce((a, b) => a + b, 0);
+    let fire = totalWeight * 0.01;
+    let netWeight = totalWeight - fire;
+    let totalSum = netWeight * price;
+    let debt = totalSum - paid;
+
+    let saleData = { 
+        company_name: currentCompany, 
+        name: name, 
+        extra: extra,
+        sum: totalWeight,
+        fire: fire,
+        net: netWeight,
+        total: totalSum, 
+        price: price, 
+        paid: paid, 
+        debt: debt,
+        date: new Date().toISOString(),
+        raw: weightsText,
+        type: 'sale',
+        is_deleted: false
+    };
+
+    if(window.supabaseClient) {
+        try {
+            if (window.currentEditId) {
+                let { error } = await window.supabaseClient
+                    .from('sales_history')
+                    .update(saleData)
+                    .eq('id', window.currentEditId);
+
+                if (error) throw error;
+                window.currentEditId = null; 
+            } else {
+                let { error } = await window.supabaseClient
+                    .from('sales_history')
+                    .insert([saleData]);
+
+                if (error) throw error;
+            }
+        } catch(e) {
+            console.error("Supabase xətası:", e);
+            alert("Bazaya yazılarkən xəta baş verdi: " + e.message);
+            return;
+        }
+    }
+
+    alert("Məlumatlar uğurla yadda saxlanıldı!");
+
+    // --- YADDA SAXLANILANDAN SONRA İŞLƏYƏN HİSSƏ ---
+    // Yenidən hesabla və yadda saxla düymələrini gizlət, Word, WhatsApp və Yeni Satış düymələrini aç
+    document.getElementById('preSaveButtons').style.display = 'none';
+    document.getElementById('postSaveButtons').style.display = 'flex';
+
+    updateDash();
+}
+    function resetToEditMode() {
+    let resContainer = document.getElementById('res');
+    if (resContainer) resContainer.style.display = 'none';
+    
+    // Yenidən ilkin Hesabla düyməsini və preSave düymələrini bərpa et
+    document.getElementById('calcBtn').style.display = 'block';
+    document.getElementById('actionButtons').style.display = 'none';
+    
+    let firstInput = document.getElementById('n');
+    if (firstInput) firstInput.focus();
+}
+
+function clr() {
+    if (confirm("Yeni satışa başlamaq istədiyinizə əminsiniz?")) {
+        localStorage.removeItem(getStorageKey('s_n'));
+        localStorage.removeItem(getStorageKey('raw'));
+        localStorage.removeItem(getStorageKey('extra'));
+
+        let allFields = document.querySelectorAll('input, select, textarea');
+        allFields.forEach(field => {
+            if (field.type !== 'button' && field.type !== 'submit' && field.type !== 'reset') {
+                field.value = '';
+            }
+        });
+
+        window.currentEditId = null;
+
+        let resContainer = document.getElementById('res');
+        if (resContainer) resContainer.style.display = 'none';
+
+        // Tamamilə ilkin formaya qayıt (Yalnız HESABLA görünsün)
+        document.getElementById('calcBtn').style.display = 'block';
+        document.getElementById('actionButtons').style.display = 'none';
+
+        let firstInput = document.getElementById('n');
+        if (firstInput) firstInput.focus();
+    }
+}
  async function ldSales() {
     let searchTerm = (document.getElementById('saleSearch') ? document.getElementById('saleSearch').value : "").toLowerCase();
     let container = document.getElementById('salesTable');
@@ -1850,7 +2006,7 @@ function renderDashStats(s) {
     if (document.getElementById('d-debt-all')) document.getElementById('d-debt-all').innerText = s.allDebt.toFixed(2) + " ₼";
     if (document.getElementById('d-count-all')) document.getElementById('d-count-all').innerText = s.allCount;
 }
-function clr() {
+/*function clr() {
     if (confirm("Təmizlənsin?")) {
         // 1. LocalStorage-də saxlanılan müvəqqəti məlumatları silirik
         if (typeof getStorageKey === 'function') {
@@ -1881,7 +2037,7 @@ function clr() {
         let firstInput = document.getElementById('s_n') || document.getElementById('customerName') || document.querySelector('input');
         if (firstInput) firstInput.focus();
     }
-}
+} */
 
 async function clrH() { 
     if(confirm("Tarixçə silinsin?")) { 
