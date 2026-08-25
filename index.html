@@ -1,4 +1,4 @@
-Version-20new<!DOCTYPE html>
+Version-20new1<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1539,14 +1539,16 @@ function resetToEditMode() {
     if(rTotal) rTotal.innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
     if(resDiv) resDiv.style.display = 'block';
     
-    // --- TƏHLÜKƏSİZ DÜYMƏ İDARƏSİ (Xəta verməsin deyə yoxlayırıq) ---
+    // --- HESABLA-DAN SONRA DÜYMƏLƏRİ AÇIRIQ ---
     let calcBtn = document.getElementById('calcBtn');
-    let preSaveButtons = document.getElementById('preSaveButtons');
-    let postSaveButtons = document.getElementById('postSaveButtons');
+    let resetBtn = document.getElementById('resetBtn');
+    let saveBtn = document.getElementById('saveBtn');
+    let newSaleBtn = document.getElementById('newSaleBtn');
 
-    if(calcBtn) calcBtn.style.display = 'none';
-    if(preSaveButtons) preSaveButtons.style.display = 'flex';
-    if(postSaveButtons) postSaveButtons.style.display = 'none';
+    if(calcBtn) calcBtn.style.display = 'none';      // Hesabla gizlənir
+    if(resetBtn) resetBtn.style.display = 'block';   // Yenidən hesabla görünür
+    if(saveBtn) saveBtn.style.display = 'block';     // Yadda saxla görünür
+    if(newSaleBtn) newSaleBtn.style.display = 'none'; // Yeni satış hələ gizli qalır
 }
 // Word funksiyası
 function word() {
