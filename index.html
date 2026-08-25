@@ -1,4 +1,4 @@
-Vers5411155<!DOCTYPE html>
+Vers511<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -2310,9 +2310,12 @@ async function loadCompanyData() {
                 <div style="max-height: 220px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;">`;
 
             validItems.forEach(i => {
-                let typeLower = String(i.type || '').toLowerCase();
+               /* let typeLower = String(i.type || '').toLowerCase();
                 let isSale = typeLower === 'sale';
                 let isPayment = typeLower === 'payment' || typeLower.includes('odeme') || typeLower.includes('borc');
+*/
+                let isSale = i.type === 'sale';
+                let isPayment = i.type === 'payment';
 
                 let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
                 let badgeText = isSale ? 'Satış' : (isPayment ? 'Ödəniş' : 'Qaytarılma');
