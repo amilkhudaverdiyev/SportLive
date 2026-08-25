@@ -1,4 +1,4 @@
-Version-Xalis2<!DOCTYPE html>
+Version-loadrender<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -953,33 +953,54 @@ async function loadCompanyData() {
 
     // 9. Mayaları maya_items cədvəlindən oxuyub cədvələ yığmaq
     async function loadAndRenderMayaTable() {
-        let companyId = getCurrentCompany();
+    let body = document.getElementById('mayaBody');
+    let totalEl = document.getElementById('m-final-total');
+    if (!body) return;
 
-        let { data: mayaItems, error } = await window.supabaseClient
-            .from('maya_items')
-            .select('*')
-            .eq('company_name', companyId);
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center; opacity:0.6;">Yüklənir... 📦</td></tr>`;
+    let mayaItems = [];
 
-        let body = document.getElementById('mayaBody');
-        let total = 0;
-        body.innerHTML = "";
+    // Satışlarda olduğu kimi birbaşa currentCompany ilə yoxlayırıq
+    if (window.supabaseClient && currentCompany) {
+        try {
+            let { data, error } = await window.supabaseClient
+                .from('maya_items')
+                .select('*')
+                .eq('company_name', currentCompany);
 
-        if (error || !mayaItems) return;
-
-        mayaItems.forEach((item) => {
-            let cemValue = parseFloat(item.cem) || 0;
-            total += cemValue;
-            body.innerHTML += `<tr>
-                <td>${item.kat}</td>
-                <td>${item.ad}</td>
-                <td>${item.say}</td>
-                <td>${parseFloat(item.qiymet).toFixed(2)}</td>
-                <td>${cemValue.toFixed(2)}</td>
-                <td><button onclick="delMaya(${item.id})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px;">X</button></td>
-            </tr>`;
-        });
-        document.getElementById('m-final-total').innerText = total.toFixed(2);
+            if (!error && data) {
+                mayaItems = data;
+            }
+        } catch (e) {
+            console.error("Maya məlumatları çəkilərkən xəta:", e);
+        }
     }
+
+    let total = 0;
+    body.innerHTML = "";
+
+    if (!mayaItems.length) {
+        body.innerHTML = `<tr><td colspan="6" style="text-align:center; opacity:0.6;">Məlumat tapılmadı.</td></tr>`;
+        if (totalEl) totalEl.innerText = "0.00";
+        return;
+    }
+
+    mayaItems.forEach((item) => {
+        let cemValue = parseFloat(item.cem) || 0;
+        total += cemValue;
+        body.innerHTML += `<tr>
+            <td>${item.kat}</td>
+            <td>${item.ad}</td>
+            <td>${item.say}</td>
+            <td>${parseFloat(item.qiymet).toFixed(2)}</td>
+            <td>${cemValue.toFixed(2)}</td>
+            <td><button onclick="delMaya(${item.id})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px; cursor:pointer;">X</button></td>
+        </tr>`;
+    });
+
+    if (totalEl) totalEl.innerText = total.toFixed(2);
+}
+
 
     // 10. Mayanı maya_items cədvəlindən silmək
     async function delMaya(id) {
