@@ -1,4 +1,4 @@
-Version-Mayanew1<!DOCTYPE html>
+Version-Mayanew21<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1570,7 +1570,10 @@ async function saveData() {
     }
 
     alert("Məlumatlar uğurla yadda saxlanıldı!");
-
+// --- BURADA XALİS XEYİRİ DƏRHAL YENİLƏYİRİK ---
+    if (typeof calculateProfit === 'function') {
+        await calculateProfit();
+    }
     let resetBtn = document.getElementById('resetBtn');
     let saveBtn = document.getElementById('saveBtn');
     let newSaleBtn = document.getElementById('newSaleBtn');
