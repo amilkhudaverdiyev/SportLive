@@ -1,4 +1,4 @@
-Version-25<!DOCTYPE html>
+Version-Maya<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -649,7 +649,7 @@ async function loadCompanyData() {
         checkSum();
     }
 
-    function calculateProfit() {
+    /*function calculateProfit() {
         let sales = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
         let maya = JSON.parse(localStorage.getItem(getStorageKey('maya_items')) || "[]");
         let totalRevenue = sales.reduce((sum, item) => sum + (item.total || 0), 0);
@@ -769,6 +769,231 @@ async function loadCompanyData() {
         localStorage.setItem(getStorageKey('maya_items'), JSON.stringify(mayaItems));
         renderMayaTable();
         calculateProfit();
+    }
+*/
+        // Şirkət ID-sini Supabase-dən və ya qlobal dəyişəndən alan köməkçi funksiya
+    function getCurrentCompany() {
+        // Burada öz şirkət ID dəyişəninizi qeyd edin (məsələn: window.companyId)
+        return window.currentCompanyId || window.selectedCompanyId || 'default';
+    }
+
+    // 1. Xalis Xeyir Hesablanması (Supabase-dən)
+    async function calculateProfit() {
+        let companyId = getCurrentCompany();
+        
+        let { data: sales } = await window.supabaseClient
+            .from('sales_history')
+            .select('total')
+            .eq('company_id', companyId);
+
+        let { data: maya } = await window.supabaseClient
+            .from('maya_items')
+            .select('cem')
+            .eq('company_name', companyId);
+
+        let totalRevenue = (sales || []).reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
+        let totalCost = (maya || []).reduce((sum, item) => sum + (parseFloat(item.cem) || 0), 0);
+        
+        let profit = totalRevenue - totalCost;
+        let display = document.getElementById('m-final-xeyir');
+        if(display) {
+            display.innerText = profit.toFixed(2);
+            display.parentElement.style.color = profit < 0 ? '#d63031' : '#2e7d32';
+        }
+    }
+
+    // 2. Bazanın panelini açıb-bağlamaq
+    async function toggleDbList() {
+        let panel = document.getElementById('db-panel');
+        panel.style.display = (panel.style.display === "none") ? "block" : "none";
+        if (panel.style.display === "block") await renderDbList();
+    }
+
+    // 3. Məhsulu redaktə üçün inputlara doldurmaq
+    function editProduct(ad, qiymet, kat) {
+        document.getElementById('db-ad').value = ad;
+        document.getElementById('db-kat').value = kat;
+        document.getElementById('db-qiymet').value = qiymet;
+        isEditing = ad.toLowerCase();
+        document.getElementById('save-btn').innerText = "YENİLƏ";
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // 4. Məhsulu product_db-dən silmək
+    async function deleteFromDb(ad) {
+        let { error } = await window.supabaseClient
+            .from('product_db')
+            .delete()
+            .ilike('ad', ad);
+
+        if (error) {
+            alert("Silinmə zamanı xəta baş verdi: " + error.message);
+            return;
+        }
+        await renderDbList();
+    }
+
+    // 5. product_db siyahısını Supabase-dən oxuyub ekrana yazmaq
+    async function renderDbList() {
+        let { data: db, error } = await window.supabaseClient
+            .from('product_db')
+            .select('*')
+            .order('ad', { ascending: true });
+
+        let listDiv = document.getElementById('db-list');
+        let html = "<hr><b>Bazadakı Məhsullar:</b>";
+        
+        if (error || !db) {
+            listDiv.innerHTML = html + "<br><small>Məlumat yüklənmədi.</small>";
+            return;
+        }
+
+        db.forEach(item => {
+            html += `<div class="item-row">
+                <div onclick="editProduct('${item.ad}', '${item.qiymet}', '${item.kat}')" style="cursor:pointer; flex:1;">
+                    <span style="font-weight:bold; text-transform:capitalize;">${item.ad}</span><br>
+                    <small style="color:var(--a); font-weight:bold;">${item.kat}</small>
+                </div>
+                <span style="font-weight:bold; color:var(--s); margin-right:10px;">${item.qiymet} ₼</span>
+                <button onclick="deleteFromDb('${item.ad}')" style="background:#ff7675; border:none; color:white; padding:4px 8px; border-radius:4px;">Sil</button>
+            </div>`;
+        });
+        listDiv.innerHTML = html;
+    }
+
+    // 6. Məhsulu product_db-ə əlavə etmək və ya yeniləmək
+    async function saveToDb() {
+        let ad = document.getElementById('db-ad').value.trim();
+        let kat = document.getElementById('db-kat').value;
+        let qiymet = parseFloat(document.getElementById('db-qiymet').value);
+
+        if(!ad || isNaN(qiymet)) return alert("Məlumatları düzgün daxil edin!");
+
+        if (isEditing) {
+            await window.supabaseClient.from('product_db').delete().ilike('ad', isEditing);
+        }
+
+        let { error } = await window.supabaseClient
+            .from('product_db')
+            .insert([{ ad: ad, kat: kat, qiymet: qiymet }]);
+
+        if (error) {
+            alert("Yadda saxlama xətası: " + error.message);
+            return;
+        }
+
+        isEditing = false;
+        document.getElementById('save-btn').innerText = "YADDAŞA AL";
+        document.getElementById('db-ad').value = '';
+        document.getElementById('db-qiymet').value = '';
+        await renderDbList();
+    }
+
+    // 7. product_db-dən qiymət tapmaq
+    async function findPrice() {
+        let ad = document.getElementById('m-ad').value.trim();
+        if (!ad) return;
+
+        let { data, error } = await window.supabaseClient
+            .from('product_db')
+            .select('*')
+            .ilike('ad', ad)
+            .single();
+
+        if (data && !error) {
+            document.getElementById('m-qiymet').value = data.qiymet;
+            document.getElementById('m-kat').value = data.kat;
+        }
+    }
+
+    function checkSum() {
+        let numbers = document.getElementById('s').value.split(/[\s\n]+/);
+        let totalCount = numbers.reduce((sum, n) => sum + (parseInt(n) || 0), 0);
+        if (totalCount > 0) {
+            document.getElementById('e').value = totalCount;
+            sv();
+        }
+    }
+
+    // 8. Mayanı maya_items cədvəlinə əlavə etmək
+    async function addMaya() {
+        let kat = document.getElementById('m-kat').value;
+        let ad = document.getElementById('m-ad').value;
+        let say = parseFloat(document.getElementById('m-say').value) || 0;
+        let qiymet = parseFloat(document.getElementById('m-qiymet').value) || 0;
+        let companyId = getCurrentCompany();
+
+        if(!ad || say === 0 || qiymet === 0) return alert("Bütün sahələri doldurun!");
+        let cem = say * qiymet;
+
+        let { error } = await window.supabaseClient
+            .from('maya_items')
+            .insert([{ 
+                company_name: companyId, 
+                kat: kat, 
+                ad: ad, 
+                say: say, 
+                qiymet: qiymet, 
+                cem: cem 
+            }]);
+
+        if (error) {
+            alert("Maya əlavə edilərkən xəta: " + error.message);
+            return;
+        }
+
+        document.getElementById('m-ad').value = '';
+        document.getElementById('m-say').value = '';
+        document.getElementById('m-qiymet').value = '';
+
+        await loadAndRenderMayaTable();
+        await calculateProfit();
+    }
+
+    // 9. Mayaları maya_items cədvəlindən oxuyub cədvələ yığmaq
+    async function loadAndRenderMayaTable() {
+        let companyId = getCurrentCompany();
+
+        let { data: mayaItems, error } = await window.supabaseClient
+            .from('maya_items')
+            .select('*')
+            .eq('company_name', companyId);
+
+        let body = document.getElementById('mayaBody');
+        let total = 0;
+        body.innerHTML = "";
+
+        if (error || !mayaItems) return;
+
+        mayaItems.forEach((item) => {
+            let cemValue = parseFloat(item.cem) || 0;
+            total += cemValue;
+            body.innerHTML += `<tr>
+                <td>${item.kat}</td>
+                <td>${item.ad}</td>
+                <td>${item.say}</td>
+                <td>${parseFloat(item.qiymet).toFixed(2)}</td>
+                <td>${cemValue.toFixed(2)}</td>
+                <td><button onclick="delMaya(${item.id})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px;">X</button></td>
+            </tr>`;
+        });
+        document.getElementById('m-final-total').innerText = total.toFixed(2);
+    }
+
+    // 10. Mayanı maya_items cədvəlindən silmək
+    async function delMaya(id) {
+        let { error } = await window.supabaseClient
+            .from('maya_items')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            alert("Silinmə xətası: " + error.message);
+            return;
+        }
+
+        await loadAndRenderMayaTable();
+        await calculateProfit();
     }
 
 
