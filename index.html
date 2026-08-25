@@ -1,4 +1,4 @@
-Version-Maya<!DOCTYPE html>
+Version-Mayanew<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -772,10 +772,10 @@ async function loadCompanyData() {
     }
 */
         // Şirkət ID-sini Supabase-dən və ya qlobal dəyişəndən alan köməkçi funksiya
-    function getCurrentCompany() {
-        // Burada öz şirkət ID dəyişəninizi qeyd edin (məsələn: window.companyId)
-        return window.currentCompanyId || window.selectedCompanyId || 'default';
+        function getCurrentCompany() {
+        return typeof currentCompany !== 'undefined' ? currentCompany : 'default';
     }
+
 
     // 1. Xalis Xeyir Hesablanması (Supabase-dən)
     async function calculateProfit() {
