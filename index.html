@@ -1,4 +1,4 @@
-Version-20new1<!DOCTYPE html>
+Version-21<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1412,17 +1412,20 @@ let saleData = {
     updateDash();
 }
 function resetToEditMode() {
-    // Qəbzi gizlət ki, xanalarda rahat düzəliş edə biləsən
-    document.getElementById('res').style.display = 'none';
-    
-    // Düymələri ilkin vəziyyətinə qaytar (yenidən "HESABLA" düyməsi görünəcək)
-    document.getElementById('calcBtn').style.display = 'block';
-    document.getElementById('actionButtons').style.display = 'none';
-    document.getElementById('exportButtons').style.display = 'none';
-    
-    // Alıcı adına fokuslan
-    let firstInput = document.getElementById('n');
-    if (firstInput) firstInput.focus();
+    // Əgər səhifədə nəticə qutusunu gizlətmək lazımdırsa:
+    let resBox = document.getElementById('res');
+    if (resBox) resBox.style.display = 'none';
+
+    // --- DÜYMƏLƏRİN VƏZİYYƏTİNİ İLKİN HALA QAYTARIRIQ ---
+    let calcBtn = document.getElementById('calcBtn');
+    let resetBtn = document.getElementById('resetBtn');
+    let saveBtn = document.getElementById('saveBtn');
+    let newSaleBtn = document.getElementById('newSaleBtn');
+
+    if(calcBtn) calcBtn.style.display = 'block';      // Təkcə HESABLA qayıdır!
+    if(resetBtn) resetBtn.style.display = 'none';   // Yenidən hesabla gizlənir
+    if(saveBtn) saveBtn.style.display = 'none';     // Yadda saxla gizlənir
+    if(newSaleBtn) newSaleBtn.style.display = 'none'; // Yeni satış gizli qalır
 }
 */
    /* async function calc() {
@@ -1691,9 +1694,9 @@ async function saveData() {
         if (firstInput) firstInput.focus();
     }
 } */
-    function clr() {
+   function clr() {
     if (confirm("Yeni satışa başlamaq istədiyinizə əminsiniz?")) {
-        // LocalStorage təmizliyi (əgər funksiyanız varsa)
+        // LocalStorage təmizliyi
         if (typeof getStorageKey === 'function') {
             localStorage.removeItem(getStorageKey('s_n'));
             localStorage.removeItem(getStorageKey('raw'));
@@ -1713,19 +1716,21 @@ async function saveData() {
         });
 
         window.currentEditId = null;
-        window.cur = null; // Qlobal cur obyektini də təmizləyirik
+        window.cur = null;
 
         let resContainer = document.getElementById('res');
         if (resContainer) resContainer.style.display = 'none';
 
-        // --- TƏHLÜKƏSİZ DÜYMƏ İDARƏSİ (Elementlərin olub-olmadığını yoxlayırıq) ---
+        // --- İLKİN VƏZİYYƏTƏ QAYTARIRIQ (Yalnız HESABLA qalır) ---
         let calcBtn = document.getElementById('calcBtn');
-        let preSaveButtons = document.getElementById('preSaveButtons');
-        let postSaveButtons = document.getElementById('postSaveButtons');
+        let resetBtn = document.getElementById('resetBtn');
+        let saveBtn = document.getElementById('saveBtn');
+        let newSaleBtn = document.getElementById('newSaleBtn');
 
-        if (calcBtn) calcBtn.style.display = 'block';         // İlkin HESABLA qayıdır
-        if (preSaveButtons) preSaveButtons.style.display = 'none'; // Əvvəlki düymələr gizlənir
-        if (postSaveButtons) postSaveButtons.style.display = 'none'; // Word, WA gizlənir
+        if (calcBtn) calcBtn.style.display = 'block';         // Yalnız HESABLA görünür
+        if (resetBtn) resetBtn.style.display = 'none';       // Yenidən hesabla gizlənir
+        if (saveBtn) saveBtn.style.display = 'none';         // Yadda saxla gizlənir
+        if (newSaleBtn) newSaleBtn.style.display = 'none';   // Yeni satış da GİZLƏNİR!
 
         let firstInput = document.getElementById('n');
         if (firstInput) firstInput.focus();
