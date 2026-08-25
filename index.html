@@ -1,4 +1,4 @@
-Version-23<!DOCTYPE html>
+Version-23NEW<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1512,6 +1512,9 @@ function resetToEditMode() {
     let weightsText = weightsTextarea.value;
 
     if(!name) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+        if(!price) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+         if(!extra) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+        if(!weightsText) return alert("Zəhmət olmasa alıcı adını daxil edin!");
 
     let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
     let totalWeight = weights.reduce((a, b) => a + b, 0);
