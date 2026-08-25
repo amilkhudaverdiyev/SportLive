@@ -1,4 +1,4 @@
-Version-23NEW<!DOCTYPE html>
+Version-24<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1664,7 +1664,7 @@ async function saveData() {
 
     
 }
-    function resetToEditMode() {
+ /*   function resetToEditMode() {
     let resContainer = document.getElementById('res');
     if (resContainer) resContainer.style.display = 'none';
     
@@ -1674,6 +1674,27 @@ async function saveData() {
     
     let firstInput = document.getElementById('n');
     if (firstInput) firstInput.focus();
+} */
+    function resetToEditMode() {
+    // 1. Əvvəlcə daxil edilmiş yeni dəyərlərə görə hesablamanı yenidən aparırıq
+    // (calc() funksiyasını çağırırıq ki, qəbzdəki rəqəmlər yenilənsin)
+    calc();
+
+    // 2. Qəbzin açıq (görünən) vəziyyətdə olmasını təmin edirik
+    let resContainer = document.getElementById('res');
+    if (resContainer) resContainer.style.display = 'block';
+    
+    // 3. DÜYMƏLƏRİN VƏZİYYƏTİ: 
+    // "Hesabla" ASLA geri gəlmir. Yalnız "Yenidən hesabla" və "Yadda saxla" görünməyə davam edir.
+    let calcBtn = document.getElementById('calcBtn');
+    let resetBtn = document.getElementById('resetBtn');
+    let saveBtn = document.getElementById('saveBtn');
+    let newSaleBtn = document.getElementById('newSaleBtn');
+
+    if (calcBtn) calcBtn.style.display = 'none';      // Hesabla gizli qalır!
+    if (resetBtn) resetBtn.style.display = 'block';   // Yenidən hesabla görünür
+    if (saveBtn) saveBtn.style.display = 'block';     // Yadda saxla görünür
+    if (newSaleBtn) newSaleBtn.style.display = 'none'; // Yeni satış hələ gizlidir
 }
 
 /*function clr() {
