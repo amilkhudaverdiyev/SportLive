@@ -1,4 +1,4 @@
-Version-Xalis<!DOCTYPE html>
+Version-Xalis2<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1422,9 +1422,9 @@ async function finalDelete(id) {
     document.getElementById('main-card').style.display = 'none';
 
     // Şirkət ID-si `currentCompany` daxilində hazır olan kimi hesablamaq üçün:
-    if (typeof calculateProfit === 'function') {
+  /*  if (typeof calculateProfit === 'function') {
         await calculateProfit();
-    }
+    }*/
 };
 
 
@@ -2061,6 +2061,9 @@ async function updateDash() {
         } catch (e) {
             console.error("Paneli yeniləyərkən Supabase xətası:", e);
         }
+    }
+    if (typeof calculateProfit === 'function') {
+        await calculateProfit();
     }
 } 
    
