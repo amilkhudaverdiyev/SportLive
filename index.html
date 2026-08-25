@@ -1,4 +1,4 @@
-Version-Mayanew<!DOCTYPE html>
+Version-Mayanew1<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -778,13 +778,13 @@ async function loadCompanyData() {
 
 
     // 1. Xalis Xeyir Hesablanması (Supabase-dən)
-    async function calculateProfit() {
+        async function calculateProfit() {
         let companyId = getCurrentCompany();
         
         let { data: sales } = await window.supabaseClient
             .from('sales_history')
             .select('total')
-            .eq('company_id', companyId);
+            .eq('company_name', companyId); // Burada company_name olaraq dəyişdi
 
         let { data: maya } = await window.supabaseClient
             .from('maya_items')
@@ -801,6 +801,7 @@ async function loadCompanyData() {
             display.parentElement.style.color = profit < 0 ? '#d63031' : '#2e7d32';
         }
     }
+
 
     // 2. Bazanın panelini açıb-bağlamaq
     async function toggleDbList() {
