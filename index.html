@@ -1,4 +1,4 @@
-Version-14.7<!DOCTYPE html>
+Version-15<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1431,7 +1431,7 @@ function resetToEditMode() {
     if (firstInput) firstInput.focus();
 }
 */
-    async function calc() {
+   /* async function calc() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
     let extra = parseInt(document.getElementById('e').value) || 0;
@@ -1474,12 +1474,12 @@ function resetToEditMode() {
     
     document.getElementById('res').style.display = 'block';
     
-    /*// Düymə görünüşlərini tənzimləyirik
+    /* Düymə görünüşlərini tənzimləyirik
     document.getElementById('calcBtn').style.display = 'none';
     document.getElementById('actionButtons').style.display = 'flex';
     document.getElementById('preSaveButtons').style.display = 'flex';   // Yenidən hesabla və Yadda saxla görünür
     document.getElementById('postSaveButtons').style.display = 'none';  // Word, WhatsApp hələ gizlidir */
-
+/*
         // --- DÜYMƏLƏRİN İDARƏSİ ---
     document.getElementById('calcBtn').style.display = 'none'; // Hesabla gizlənir
     document.getElementById('resetBtn').style.display = 'block'; // Yenidən hesabla açılır
@@ -1489,6 +1489,70 @@ function resetToEditMode() {
     document.getElementById('wb').style.display = 'none';
     document.getElementById('sb').style.display = 'none';
     document.getElementById('newSaleBtn').style.display = 'none';
+} */
+
+    async function calc() {
+    let nameInput = document.getElementById('n');
+    let priceInput = document.getElementById('p');
+    let extraInput = document.getElementById('e');
+    let paidInput = document.getElementById('paidInp');
+    let weightsTextarea = document.getElementById('l');
+
+    if (!nameInput || !weightsTextarea) {
+        console.error("Form elementləri tapılmadı!");
+        return;
+    }
+
+    let name = nameInput.value.trim();
+    let price = parseFloat(priceInput.value) || 0;
+    let extra = parseInt(extraInput.value) || 0;
+    let paid = parseFloat(paidInput.value) || 0;
+    let weightsText = weightsTextarea.value;
+
+    if(!name) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+
+    let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
+    let totalWeight = weights.reduce((a, b) => a + b, 0);
+    
+    let fire = totalWeight * 0.01;
+    let netWeight = totalWeight - fire;
+    let totalSum = netWeight * price;
+    let debt = totalSum - paid;
+    let currentDateStr = new Date().toLocaleString('sv-SE').replace('T', ' ');
+
+    let formattedWeights = weights.map((w, i) => `${i + 1}. ${w.toFixed(2)}`).join('<br>');
+
+    // Nəticə hissələrini yoxlayaraq doldururuq
+    let rTop = document.getElementById('r-top');
+    let rWeights = document.getElementById('r-weights');
+    let rBottom = document.getElementById('r-bottom');
+    let rTotal = document.getElementById('r-total');
+    let resDiv = document.getElementById('res');
+
+    if(rTop) rTop.innerHTML = `<div class="r-row"><span>Alıcı:</span><b>${name}</b></div><div class="r-row"><span>Tarix:</span><span>${currentDateStr}</span></div>`;
+    if(rWeights) rWeights.innerHTML = formattedWeights;
+    if(rBottom) rBottom.innerHTML = `
+        <div class="r-row"><span>Ümumi Çəki:</span><span>${totalWeight.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Faiz (1%):</span><span>-${fire.toFixed(2)} kq</span></div>
+        <div class="r-row"><span>Qiymət:</span><span>${price.toFixed(2)} ₼</span></div>
+        <div class="r-row"><span>Əlavə Say:</span><span>${extra}</span></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row"><b>Xalis:</b><b>${netWeight.toFixed(3)} kq</b></div>
+        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row" style="color:var(--s);"><span>Ödənildi:</span><span>${paid.toFixed(2)} ₼</span></div>
+        <div class="r-row" style="color:var(--d);"><span>Borc:</span><span>${debt.toFixed(2)} ₼</span></div>
+    `;
+    if(rTotal) rTotal.innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
+    if(resDiv) resDiv.style.display = 'block';
+    
+    // --- TƏHLÜKƏSİZ DÜYMƏ İDARƏSİ (Xəta verməsin deyə yoxlayırıq) ---
+    let calcBtn = document.getElementById('calcBtn');
+    let preSaveButtons = document.getElementById('preSaveButtons');
+    let postSaveButtons = document.getElementById('postSaveButtons');
+
+    if(calcBtn) calcBtn.style.display = 'none';
+    if(preSaveButtons) preSaveButtons.style.display = 'flex';
+    if(postSaveButtons) postSaveButtons.style.display = 'none';
 }
 // Word funksiyası
 function word() {
