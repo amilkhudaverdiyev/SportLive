@@ -1,4 +1,4 @@
-Version-11<!DOCTYPE html>
+Version-12<!DOCTYPE html>
 <html lang="az">
 <head>
     <meta charset="UTF-8">
@@ -1578,7 +1578,9 @@ async function clrPaymentsH() {
             let isCredit = debtVal < 0;
             let safeName = d.originalName.replace(/'/g, "\\'");
             
-            html += `<div class="debt-item" style="border-left-color: var(--d);">
+          let borderColor = isCredit ? 'var(--s)' : 'var(--d)';
+            
+            html += `<div class="debt-item" style="border-left-color: ${borderColor};">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <b>${d.originalName}</b>
                     <span class="${isCredit ? 'txt-credit' : 'txt-debt'}">${Math.abs(debtVal).toFixed(2)} ₼</span>
