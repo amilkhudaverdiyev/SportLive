@@ -1,4 +1,4 @@
-Version-15<!DOCTYPE html>
+Version-20<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -1630,7 +1630,7 @@ async function saveData() {
         }
     }
 
-    alert("Məlumatlar uğurla yadda saxlanıldı!");
+//    alert("Məlumatlar uğurla yadda saxlanıldı!");
 
    /* // --- YADDA SAXLANILANDAN SONRA İŞLƏYƏN HİSSƏ ---
     // Yenidən hesabla və yadda saxla düymələrini gizlət, Word, WhatsApp və Yeni Satış düymələrini aç
@@ -1638,17 +1638,30 @@ async function saveData() {
     document.getElementById('postSaveButtons').style.display = 'flex';
 
     updateDash(); */
-
     alert("Məlumatlar uğurla yadda saxlanıldı!");
 
-    // --- SƏLİQƏLİ ARDICILLIQ ---
-    document.getElementById('calcBtn').style.display = 'none';
-    document.getElementById('preSaveButtons').style.display = 'none'; // Yenidən hesabla və yadda saxla gizlənir
-    
-    let postBox = document.getElementById('postSaveButtons');
-    postBox.style.display = 'flex'; // Word, WhatsApp və Yeni Satış alt-alta səliqəli açılır
+    // --- DÜYMƏLƏRİN GÖRÜNMƏSİ ÜÇÜN MƏCBURİ ƏMR ---
+    let preSaveButtons = document.getElementById('preSaveButtons');
+    let postSaveButtons = document.getElementById('postSaveButtons');
 
-    updateDash();
+    // 1. "Yenidən hesabla" və "Yadda saxla" düymələri gizlənir
+    if (preSaveButtons) {
+        preSaveButtons.style.display = 'none';
+    }
+
+    // 2. "Word", "WhatsApp" və "Yeni Satış" düymələri MƏCBURİ AÇILIR
+    if (postSaveButtons) {
+        postSaveButtons.style.display = 'flex';
+        postSaveButtons.style.flexDirection = 'column';
+        postSaveButtons.style.gap = '8px';
+    }
+
+    if (typeof updateDash === 'function') {
+        updateDash();
+    }
+
+
+    
 }
     function resetToEditMode() {
     let resContainer = document.getElementById('res');
@@ -1662,7 +1675,7 @@ async function saveData() {
     if (firstInput) firstInput.focus();
 }
 
-function clr() {
+/*function clr() {
     if (confirm("Yeni satışa başlamaq istədiyinizə əminsiniz?")) {
         localStorage.removeItem(getStorageKey('s_n'));
         localStorage.removeItem(getStorageKey('raw'));
@@ -1683,6 +1696,46 @@ function clr() {
         // Tamamilə ilkin formaya qayıt (Yalnız HESABLA görünsün)
         document.getElementById('calcBtn').style.display = 'block';
         document.getElementById('actionButtons').style.display = 'none';
+
+        let firstInput = document.getElementById('n');
+        if (firstInput) firstInput.focus();
+    }
+} */
+    function clr() {
+    if (confirm("Yeni satışa başlamaq istədiyinizə əminsiniz?")) {
+        // LocalStorage təmizliyi (əgər funksiyanız varsa)
+        if (typeof getStorageKey === 'function') {
+            localStorage.removeItem(getStorageKey('s_n'));
+            localStorage.removeItem(getStorageKey('raw'));
+            localStorage.removeItem(getStorageKey('extra'));
+        } else {
+            localStorage.removeItem('s_n');
+            localStorage.removeItem('raw');
+            localStorage.removeItem('extra');
+        }
+
+        // Bütün input, select və textarea sahələrini təmizləyirik
+        let allFields = document.querySelectorAll('input, select, textarea');
+        allFields.forEach(field => {
+            if (field.type !== 'button' && field.type !== 'submit' && field.type !== 'reset') {
+                field.value = '';
+            }
+        });
+
+        window.currentEditId = null;
+        window.cur = null; // Qlobal cur obyektini də təmizləyirik
+
+        let resContainer = document.getElementById('res');
+        if (resContainer) resContainer.style.display = 'none';
+
+        // --- TƏHLÜKƏSİZ DÜYMƏ İDARƏSİ (Elementlərin olub-olmadığını yoxlayırıq) ---
+        let calcBtn = document.getElementById('calcBtn');
+        let preSaveButtons = document.getElementById('preSaveButtons');
+        let postSaveButtons = document.getElementById('postSaveButtons');
+
+        if (calcBtn) calcBtn.style.display = 'block';         // İlkin HESABLA qayıdır
+        if (preSaveButtons) preSaveButtons.style.display = 'none'; // Əvvəlki düymələr gizlənir
+        if (postSaveButtons) postSaveButtons.style.display = 'none'; // Word, WA gizlənir
 
         let firstInput = document.getElementById('n');
         if (firstInput) firstInput.focus();
