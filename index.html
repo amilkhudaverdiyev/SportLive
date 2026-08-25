@@ -1,4 +1,4 @@
-Version-14.1<!DOCTYPE html>
+Version-14.5<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -210,26 +210,19 @@ Version-14.1<!DOCTYPE html>
         <input type="text" id="paidInp" inputmode="decimal" style="border-color: var(--s);" placeholder="0.00">
 
        <div class="btn-box">
-    <!-- 1. İlkin olaraq yalnız HESABLA görünür -->
+    <!-- 1. HESABLA düyməsi -->
     <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
     
-    <!-- 2. Hesablandıqdan sonra çıxan düymələr qutusu -->
-    <div id="actionButtons" style="display: none; flex-direction: column; gap: 8px;">
-        
-        <!-- Yenidən hesabla və Yadda saxla (Əvvəl görünür, yadda saxlayandan sonra gizlənəcək) -->
-        <div id="preSaveButtons" style="display: flex; gap: 8px;">
-            <button class="b-clr" onclick="resetToEditMode()" style="flex: 1; background: var(--gold); color: #000;">🔄 YENİDƏN HESABLA</button>
-            <button class="b-clr" onclick="saveData()" style="flex: 1; background: var(--s); color: #fff; font-weight: bold;">💾 YADDA SAXLA</button>
-        </div>
+    <!-- 2. Yenidən hesabla və Yadda saxla -->
+    <button id="resetBtn" class="b-clr" onclick="resetToEditMode()" style="display: none; background: var(--gold); color: #000; margin-bottom: 8px;">🔄 YENİDƏN HESABLA</button>
+    <button id="saveBtn" class="b-clr" onclick="saveData()" style="display: none; background: var(--s); color: #fff; font-weight: bold; margin-bottom: 8px;">💾 YADDA SAXLA</button>
 
-        <!-- Word, WhatsApp və Yeni Satış (Yadda saxlayandan sonra görünəcək) -->
-        <div id="postSaveButtons" style="display: none; flex-direction: column; gap: 8px;">
-            <button id="wb" class="b-word" onclick="word()">WORD KİMİ SAXLA</button>
-            <button id="sb" class="b-share" onclick="wa()" style="background: var(--w);">WHATSAPP-LA GÖNDƏR</button>
-            <button class="b-clr" onclick="clr()" style="background: var(--d); color: white;">YENİ SATIŞ</button>
-        </div>
-        
-    </div>
+    <!-- 3. Word və WhatsApp (Bunlar birbaşa id ilə idarə olunacaq) -->
+    <button id="wb" class="b-word" onclick="word()" style="display: none; width: 100%; margin-bottom: 8px;">WORD KİMİ SAXLA</button>
+    <button id="sb" class="b-share" onclick="wa()" style="display: none; background: var(--w); width: 100%; margin-bottom: 8px;">WHATSAPP-LA GÖNDƏR</button>
+    
+    <!-- 4. Yeni Satış -->
+    <button id="newSaleBtn" class="b-clr" onclick="clr()" style="display: none; background: var(--d); color: white; width: 100%;">YENİ SATIŞ</button>
 </div>
 
         <div id="res" class="receipt">
@@ -1479,11 +1472,21 @@ function resetToEditMode() {
     
     document.getElementById('res').style.display = 'block';
     
-    // Düymə görünüşlərini tənzimləyirik
+    /*// Düymə görünüşlərini tənzimləyirik
     document.getElementById('calcBtn').style.display = 'none';
     document.getElementById('actionButtons').style.display = 'flex';
     document.getElementById('preSaveButtons').style.display = 'flex';   // Yenidən hesabla və Yadda saxla görünür
-    document.getElementById('postSaveButtons').style.display = 'none';  // Word, WhatsApp hələ gizlidir
+    document.getElementById('postSaveButtons').style.display = 'none';  // Word, WhatsApp hələ gizlidir */
+
+        // --- DÜYMƏLƏRİN İDARƏSİ ---
+    document.getElementById('calcBtn').style.display = 'none'; // Hesabla gizlənir
+    document.getElementById('resetBtn').style.display = 'block'; // Yenidən hesabla açılır
+    document.getElementById('saveBtn').style.display = 'block'; // Yadda saxla açılır
+    
+    // Word və WhatsApp hələ gizli qalsın (çünki hələ yadda saxlanılmayıb)
+    document.getElementById('wb').style.display = 'none';
+    document.getElementById('sb').style.display = 'none';
+    document.getElementById('newSaleBtn').style.display = 'none';
 }
 // Word funksiyası
 function word() {
@@ -1563,10 +1566,20 @@ async function saveData() {
 
     alert("Məlumatlar uğurla yadda saxlanıldı!");
 
-    // --- YADDA SAXLANILANDAN SONRA İŞLƏYƏN HİSSƏ ---
+   /* // --- YADDA SAXLANILANDAN SONRA İŞLƏYƏN HİSSƏ ---
     // Yenidən hesabla və yadda saxla düymələrini gizlət, Word, WhatsApp və Yeni Satış düymələrini aç
     document.getElementById('preSaveButtons').style.display = 'none';
     document.getElementById('postSaveButtons').style.display = 'flex';
+
+    updateDash(); */
+
+    // --- BURADA WORD VƏ WHATSAPP MƏCBURİ AÇILIR ---
+    document.getElementById('resetBtn').style.display = 'none'; // Yenidən hesabla gizlənir
+    document.getElementById('saveBtn').style.display = 'none'; // Yadda saxla gizlənir
+    
+    document.getElementById('wb').style.display = 'block'; // WORD GÖRÜNÜR
+    document.getElementById('sb').style.display = 'block'; // WHATSAPP GÖRÜNÜR
+    document.getElementById('newSaleBtn').style.display = 'block'; // YENİ SATIŞ GÖRÜNÜR
 
     updateDash();
 }
