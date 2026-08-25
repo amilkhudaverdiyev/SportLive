@@ -1,4 +1,4 @@
-Version-loadr11<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -18,18 +18,15 @@ Version-loadr11<!DOCTYPE html>
     body { background: var(--bg); margin: 0; padding: 10px; }
     .card { background: #fff; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1); overflow: hidden; max-width: 500px; margin: auto; }
     
-    /* İLK AÇILIŞ EKRANI ÜÇÜN XÜSUSİ DİZAYN */
     #welcome-wrapper { display: flex; align-items: center; justify-content: center; min-height: 90vh; }
     #welcome-card { padding: 30px 20px; text-align: center; width: 100%; max-width: 450px; }
     #welcome-card h2 { color: var(--p); margin-bottom: 5px; font-size: 20px; }
     #welcome-card p { color: #636e72; font-size: 13px; margin-bottom: 20px; }
 
-    /* Ümumi Borclar Siyahısı (İlk Ekran Üçün - Aşağıda yerləşir) */
     .global-debt-box { max-height: 320px; overflow-y: auto; border: 1px solid #eee; border-radius: 8px; margin-top: 15px; background: #fafafa; text-align: left; padding: 8px; display: none; }
     .global-debt-item { display: flex; justify-content: space-between; padding: 10px; border-bottom: 1px solid #eee; font-size: 14px; align-items: center; background: #fff; margin-bottom: 6px; border-radius: 6px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
     .global-debt-item:last-child { margin-bottom: 0; }
 
-    /* Müəssisə Başlıq Paneli */
     .company-bar { background: #dfe6e9; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ccc; }
     .company-title-box { display: flex; flex-direction: column; }
 
@@ -67,7 +64,6 @@ Version-loadr11<!DOCTYPE html>
     .dash-card small { font-size: 10px; text-transform: uppercase; opacity: 0.9; display: block; margin-bottom: 5px; }
     .dash-card b { font-size: 1.1rem; }
 
-    /* Qaranlıq rejim */
     body.dark-mode { background: #121212; color: #ffffff; }
     body.dark-mode .card { background: #1e1e1e; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
     body.dark-mode .tabs { background: #2d2d2d; border-bottom: 1px solid #444; }
@@ -92,7 +88,6 @@ Version-loadr11<!DOCTYPE html>
 <body>
 <button class="dark-toggle" onclick="toggleDark()">🌓</button>
 
-<!-- İLK AÇILIŞ MÜƏSSİSƏ VƏ ÜMUMİ BORCLAR EKRANI -->
 <div id="welcome-wrapper">
     <div class="card" id="welcome-card">
         <h2>🏢 MÜƏSSİSƏ SEÇİMİ</h2>
@@ -107,7 +102,6 @@ Version-loadr11<!DOCTYPE html>
         <button onclick="toggleGlobalDebts()" id="debtToggleBtn" style="width: 100%; background: var(--d); color: white; padding: 12px; font-size: 13px;">📋 ÜMUMİ BORCLARI GÖSTƏR</button>
         
         <div id="globalDebtContainer" class="global-debt-box" style="display: none;">
-            <!-- FİLTRLƏR BÖLMƏSİ -->
             <div style="margin-bottom: 10px; padding-bottom: 8px; border-bottom: 1px solid #ddd;">
                 <input type="text" id="globalSearchInp" oninput="filterGlobalDebts()" placeholder="🔍 Müştəri adına görə axtar..." style="padding: 8px; font-size: 13px; margin-bottom: 6px;">
                 <div style="display: flex; gap: 4px;">
@@ -116,13 +110,11 @@ Version-loadr11<!DOCTYPE html>
                     <button onclick="setGlobalFilter('credit', this)" class="g-filter-btn" style="flex:1; padding:6px; font-size:10px; background:#dfe6e9; color:var(--p); border-radius:4px;">Alıcılar (+)</button>
                 </div>
             </div>
-            <!-- NƏTİCƏLƏR SİYAHISI -->
             <div id="globalDebtListContent"></div>
         </div>
     </div>
 </div>
 
-<!-- ƏSAS İdarəetmə Paneli -->
 <div class="card" id="main-card" style="display: none;">
     <div class="company-bar">
         <div class="company-title-box">
@@ -138,7 +130,7 @@ Version-loadr11<!DOCTYPE html>
         <button class="tab" onclick="shTab('h_sales', this); ldSales();">SATIŞLAR</button>
         <button class="tab" onclick="shTab('h_payments', this); ldPayments();">ÖDƏNİŞLƏR</button>
         <button class="tab" onclick="shTab('b', this); ldB();">BORCLAR</button>
-        <button class="tab" onclick="shTab('maya', this)">MAYA</button>
+        <button class="tab" onclick="shTab('maya', this); loadAndRenderMayaTable(); calculateProfit();">MAYA</button>
     </div>
     
    <div id="dash" class="content active">
@@ -157,7 +149,7 @@ Version-loadr11<!DOCTYPE html>
             <div class="dash-card" style="background: var(--p);"><small>Ümumi Dövriyyə</small><b id="d-sale-all">0.00 ₼</b></div>
             <div class="dash-card" style="background: var(--d);"><small>Ümumi Borc</small><b id="d-debt-all">0.00 ₼</b></div>
             <div class="dash-card" style="background: #e67e22;"><small>Ümumi Say</small><b id="d-count-all">0</b></div>
-            <div onclick="shTab('trash', this)" class="dash-card" style="background: #636e72; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+            <div onclick="shTab('trash', this); ldTrash();" class="dash-card" style="background: #636e72; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                 <small>Zibil Qutusu</small>
                 <b>🗑️</b>
             </div>
@@ -181,9 +173,6 @@ Version-loadr11<!DOCTYPE html>
             <button onclick="ldTrash()" style="background:var(--s); color:white; border:none; padding:5px 12px; border-radius:5px; font-size:11px;">YENİLƏ 🔄</button>
         </div>
         <div class="table-wrap" id="trashTable"></div>
-        <div class="btn-box">
-            <button onclick="emptyTrash()" style="background: var(--d);">ZİBİL QUTUSUNU BOŞALT</button>
-        </div>
     </div>
 
     <div id="c" class="content">
@@ -210,16 +199,11 @@ Version-loadr11<!DOCTYPE html>
         <input type="text" id="paidInp" inputmode="decimal" style="border-color: var(--s);" placeholder="0.00">
 
      <div class="btn-box">
-    <!-- 1. HESABLA -->
-    <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
-    
-    <!-- 2. HESABLA-dan sonra çıxanlar -->
-    <button id="resetBtn" class="b-clr" onclick="resetToEditMode()" style="display: none; background: var(--gold); color: #000; width: 100%; margin-bottom: 8px;">🔄 YENİDƏN HESABLA</button>
-    <button id="saveBtn" class="b-clr" onclick="saveData()" style="display: none; background: var(--s); color: #fff; font-weight: bold; width: 100%; margin-bottom: 8px;">💾 YADDA SAXLA</button>
-
-    <!-- 3. YADDA SAXLA-dan sonra yalnız Yeni Satış düyməsi qalır -->
-    <button id="newSaleBtn" class="b-clr" onclick="clr()" style="display: none; background: var(--d); color: white; width: 100%;">YENİ SATIŞ</button>
-</div>
+        <button id="calcBtn" class="b-calc" onclick="calc()">HESABLA</button>
+        <button id="resetBtn" class="b-clr" onclick="resetToEditMode()" style="display: none; background: var(--gold); color: #000; width: 100%; margin-bottom: 8px;">🔄 YENİDƏN HESABLA</button>
+        <button id="saveBtn" class="b-clr" onclick="saveData()" style="display: none; background: var(--s); color: #fff; font-weight: bold; width: 100%; margin-bottom: 8px;">💾 YADDA SAXLA</button>
+        <button id="newSaleBtn" class="b-clr" onclick="clr()" style="display: none; background: var(--d); color: white; width: 100%;">YENİ SATIŞ</button>
+    </div>
 
         <div id="res" class="receipt">
             <div style="text-align:center; font-weight:bold; padding-bottom:5px; border-bottom:1px solid #eee;">SATIŞ QƏBZİ</div>
@@ -302,22 +286,24 @@ Version-loadr11<!DOCTYPE html>
     </div>
 </div>
 
-
 <script>
-    // Supabase Konfiqurasiyası (Öz məlumatlarınızla əvəz edin)
 const SUPABASE_URL = 'https://dbqvcfgchzgxakbvbrhk.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRicXZjZmdjaHpneGFrYnZicmhrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY4NzA3MzUsImV4cCI6MjEwMjQ0NjczNX0.iZ3susdBol9z5ThaXZYkuyWAypls2cMylM3MlODlYZM';
 
 window.supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    let currentCompany = localStorage.getItem('active_company') || "";
-    let isEditing = false;
-    let mayaItems = [];
-    let cur = {};
-    let globalFilterType = 'all';
+let currentCompany = localStorage.getItem('active_company') || "";
+let isEditing = false;
+let globalFilterType = 'all';
 
-    // --- INITIALIZATION & WELCOME ---
+function toggleDark() {
+    document.body.classList.toggle('dark-mode');
+    localStorage.setItem('dark_mode', document.body.classList.contains('dark-mode'));
+}
 
-// 1. sales_history cədvəlindəki müəssisələri avtomatik companies cədvəlinə əlavə edən köməkçi funksiya
+if (localStorage.getItem('dark_mode') === 'true') {
+    document.body.classList.add('dark-mode');
+}
+
 async function syncSalesCompaniesToCompaniesTable(salesCompanies, existingCompanies) {
     let existingLower = existingCompanies.map(c => c.toLowerCase());
     let missingCompanies = salesCompanies.filter(c => c && !existingLower.includes(c.toLowerCase()));
@@ -325,31 +311,19 @@ async function syncSalesCompaniesToCompaniesTable(salesCompanies, existingCompan
     if (missingCompanies.length > 0 && window.supabaseClient) {
         let insertData = missingCompanies.map(name => ({ name: name }));
         try {
-            let { error } = await window.supabaseClient
-                .from('companies')
-                .insert(insertData);
-
-            if (error) {
-                console.error("Köhnə müəssisələr 'companies' cədvəlinə köçürülərkən xəta:", error);
-            } else {
-                console.log("Köhnə müəssisələr uğurla 'companies' cədvəlinə əlavə edildi:", missingCompanies);
-            }
+            await window.supabaseClient.from('companies').insert(insertData);
         } catch (e) {
             console.error("Miqrasiya xətası:", e);
         }
     }
 }
 
-// 2. Müəssisələrin oxunması - Bütün müəssisələri 'companies' cədvəlindən çəkir
 async function initWelcomeScreen() {
     let select = document.getElementById('welcomeCompanySelect');
-    let loadingMessage = document.getElementById('loadingMessage'); // Əgər HTML-də yaratmısansa
     if (!select) return;
 
     select.innerHTML = `<option value="" disabled selected>Yüklənir...</option>`;
-
     select.disabled = true;
-    if (loadingMessage) loadingMessage.style.display = 'inline'; // və ya 'block'
 
     let companiesMap = {};
     let existingCompaniesFromTable = [];
@@ -357,12 +331,8 @@ async function initWelcomeScreen() {
 
     if (window.supabaseClient) {
         try {
-            
-            let { data: compData, error: cErr } = await window.supabaseClient
-                .from('companies')
-                .select('name');
-
-            if (!cErr && compData) {
+            let { data: compData } = await window.supabaseClient.from('companies').select('name');
+            if (compData) {
                 compData.forEach(item => {
                     if (item.name) {
                         let trimmed = item.name.trim();
@@ -372,45 +342,33 @@ async function initWelcomeScreen() {
                 });
             }
 
-           
-            let { data: salesData, error: sErr } = await window.supabaseClient
-                .from('sales_history')
-                .select('company_name');
-
-            if (!sErr && salesData) {
+            let { data: salesData } = await window.supabaseClient.from('sales_history').select('company_name');
+            if (salesData) {
                 salesData.forEach(item => {
                     if (item.company_name) {
                         let trimmed = item.company_name.trim();
-                        if (!salesCompaniesList.includes(trimmed)) {
-                            salesCompaniesList.push(trimmed);
-                        }
+                        if (!salesCompaniesList.includes(trimmed)) salesCompaniesList.push(trimmed);
                         companiesMap[trimmed.toLowerCase()] = trimmed;
                     }
                 });
             }
 
             await syncSalesCompaniesToCompaniesTable(salesCompaniesList, existingCompaniesFromTable);
-
         } catch (e) {
             console.error("Müəssisələr sinkronizasiya edilərkən xəta:", e);
         }
     }
 
     let companyList = Object.values(companiesMap).sort();
-    if (companyList.length === 0) {
-        companyList = ["Müəssisə 1"];
-    }
+    if (companyList.length === 0) companyList = ["Müəssisə 1"];
 
-    // 2. Məlumatlar gəldi, siyahını təmizləyib doldururuq
     select.innerHTML = "";
     select.disabled = false;
     companyList.forEach(c => {
         let opt = document.createElement('option');
         opt.value = c;
         opt.innerText = c;
-        if (c === currentCompany) {
-            opt.selected = true;
-        }
+        if (c === currentCompany) opt.selected = true;
         select.appendChild(opt);
     });
 
@@ -418,10 +376,6 @@ async function initWelcomeScreen() {
         currentCompany = companyList[0];
         select.value = currentCompany;
     }
-
-    // 3. İŞ BİTDİ: Select-in kilidini açırıq, "Yüklənir..." yazısını gizlədirik
-    select.disabled = false;
-    if (loadingMessage) loadingMessage.style.display = 'none';
 
     if (typeof renderGlobalDebts === 'function' && companyList.length > 0) {
         await renderGlobalDebts(companyList);
@@ -462,17 +416,12 @@ async function renderGlobalDebts(companyList) {
 
     if (window.supabaseClient) {
         try {
-            let { data, error } = await window.supabaseClient.from('sales_history')
-                .select('*')
-             .or('is_deleted.is.null,is_deleted.eq.false');
-            
-            if (!error && data) {
+            let { data } = await window.supabaseClient.from('sales_history').select('*').or('is_deleted.is.null,is_deleted.eq.false');
+            if (data) {
                 data.forEach(item => {
                     let nameKey = (item.name || "").toLowerCase().trim();
                     if (!nameKey) return;
-                    if (!globalTotals[nameKey]) {
-                        globalTotals[nameKey] = { originalName: item.name, sumDebt: 0 };
-                    }
+                    if (!globalTotals[nameKey]) globalTotals[nameKey] = { originalName: item.name, sumDebt: 0 };
                     globalTotals[nameKey].sumDebt += (parseFloat(item.debt) || 0);
                 });
             }
@@ -484,7 +433,6 @@ async function renderGlobalDebts(companyList) {
     let searchTerm = (document.getElementById('globalSearchInp') ? document.getElementById('globalSearchInp').value : "").toLowerCase();
     let html = "";
     let hasActiveDebt = false;
-
     let sortedKeys = Object.keys(globalTotals).sort((a, b) => globalTotals[b].sumDebt - globalTotals[a].sumDebt);
 
     sortedKeys.forEach(key => {
@@ -493,7 +441,6 @@ async function renderGlobalDebts(companyList) {
 
         if (debtVal !== 0) {
             let isCredit = debtVal < 0;
-
             if (globalFilterType === 'debt' && isCredit) return;
             if (globalFilterType === 'credit' && !isCredit) return;
             if (searchTerm && !item.originalName.toLowerCase().includes(searchTerm)) return;
@@ -510,98 +457,55 @@ async function renderGlobalDebts(companyList) {
     container.innerHTML = hasActiveDebt ? html : `<p style="padding:15px; text-align:center; color:#888; font-size:13px; margin:0;">Uyğun nəticə tapılmadı.</p>`;
 }
 
-    
-    
 function selectWelcomeCompany() {
     let select = document.getElementById('welcomeCompanySelect');
-    
-    // Əgər dəyər yoxdursa və ya hələ "Yüklənir..." yazılıbsa, irəli getməsin
     if (!select.value || select.value === "Yüklənir..." || select.value === "Seçin...") {
         alert("Zəhmət olmasa müəssisənin yüklənməsini gözləyin və ya düzgün müəssisə seçin!");
         return;
     }
-
     currentCompany = select.value;
     localStorage.setItem('active_company', currentCompany);
     showMainApp();
 }
 
-// 1. Yeni müəssisə yaradılması
 async function addNewCompanyFromWelcome() {
     let name = prompt("Yeni müəssisənin adını daxil edin (məs: Müəssisə 2):");
-    if (!name) return;
-    
+    if (!name || !name.trim()) return;
     name = name.trim();
-    if (!name) return;
 
-    if (!window.supabaseClient) {
-        return alert("Supabase bağlantısı yoxdur!");
-    }
+    if (!window.supabaseClient) return alert("Supabase bağlantısı yoxdur!");
 
     try {
-        // Əvvəlcə mövcudluğunu yoxlayırıq
-        let { data: existing, error: checkErr } = await window.supabaseClient
-            .from('companies')
-            .select('name')
-            .eq('name', name);
+        let { data: existing } = await window.supabaseClient.from('companies').select('name').eq('name', name);
+        if (existing && existing.length > 0) return alert("Bu adla müəssisə artıq bazada mövcuddur!");
 
-        if (checkErr) {
-            console.error("Yoxlama xətası:", checkErr);
-        }
-
-        if (existing && existing.length > 0) {
-            return alert("Bu adla müəssisə artıq bazada mövcuddur!");
-        }
-
-        // 'companies' cədvəlinə əlavə edirik
-        let { data: insertedComp, error: compError } = await window.supabaseClient
-            .from('companies')
-            .insert([{ name: name }])
-            .select();
-
-        if (compError) {
-            console.error("Companies insert xətası:", compError);
-            alert("Müəssisə 'companies' cədvəlinə yazılmadı! (RLS icazələrini yoxlayın)");
-            return;
-        }
-
-        // 'sales_history' cədvəlinə ilkin sistem qeydi atırıq
-        let { error: salesError } = await window.supabaseClient
-            .from('sales_history')
-            .insert([{
-                company_name: name,
-                name: 'SİSTEM',
-                extra: 'MÜƏSSİSƏ YARADILDI',
-                type: 'system_init',
-                sum: 0, fire: 0, net: 0, total: 0, price: 0, paid: 0, debt: 0,
-                date: new Date().toLocaleString('az-AZ'),
-                raw: []
-            }]);
-
-        if (salesError) {
-            console.error("Sales history insert xətası:", salesError);
-        }
+        await window.supabaseClient.from('companies').insert([{ name: name }]);
+        await window.supabaseClient.from('sales_history').insert([{
+            company_name: name,
+            name: 'SİSTEM',
+            extra: 'MÜƏSSİSƏ YARADILDI',
+            type: 'system_init',
+            sum: 0, fire: 0, net: 0, total: 0, price: 0, paid: 0, debt: 0,
+            date: new Date().toLocaleString('az-AZ'),
+            raw: []
+        }]);
 
         currentCompany = name;
         localStorage.setItem('active_company', name);
-        
         alert(`"${name}" müəssisəsi uğurla yaradıldı!`);
         await initWelcomeScreen();
         showMainApp();
-
     } catch (e) {
         console.error("Kritik xəta:", e);
         alert("Gözlənilməz xəta baş verdi!");
     }
 }
+
 function showMainApp() {
     document.getElementById('welcome-wrapper').style.display = 'none';
     document.getElementById('main-card').style.display = 'block';
     document.getElementById('activeCompanyName').innerText = currentCompany;
-
     document.getElementById('res').style.display = 'none';
-    
-
     loadCompanyData();
 }
 
@@ -617,421 +521,192 @@ async function loadCompanyData() {
     await updateDash();
     let hSales = document.getElementById('h_sales');
     let hPayments = document.getElementById('h_payments');
+    let maya = document.getElementById('maya');
     let b = document.getElementById('b');
 
     if (hSales && hSales.style.display === 'block') await ldSales();
     if (hPayments && hPayments.style.display === 'block') await ldPayments();
+    if (maya && maya.style.display === 'block') {
+        await loadAndRenderMayaTable();
+        await calculateProfit();
+    }
     if (b && b.style.display === 'block') await ldB();
 }
 
-    function getStorageKey(type) {
-        return `${type}_${currentCompany}`;
+function getStorageKey(type) {
+    return `${type}_${currentCompany}`;
+}
+
+const textarea = document.getElementById('l');
+const lineNumbers = document.getElementById('line-numbers');
+textarea.addEventListener('scroll', () => { lineNumbers.scrollTop = textarea.scrollTop; });
+
+function updateNumbersS(el) {
+    let html = "";
+    el.value.split('\n').forEach((_, i) => html += (i + 1) + ".<br>");
+    let div = document.getElementById('s-line-numbers');
+    div.innerHTML = html;
+    div.scrollTop = el.scrollTop;
+}
+
+function updateNumbers(el) {
+    let html = "";
+    el.value.split('\n').forEach((_, i) => html += (i + 1) + ".<br>");
+    let div = document.getElementById('line-numbers');
+    div.innerHTML = html;
+    div.scrollTop = el.scrollTop;
+    checkSum();
+}
+
+function getCurrentCompany() {
+    return typeof currentCompany !== 'undefined' ? currentCompany : 'default';
+}
+
+async function calculateProfit() {
+    let companyId = getCurrentCompany();
+    let { data: sales } = await window.supabaseClient.from('sales_history').select('total').eq('company_name', companyId).or('is_deleted.is.null,is_deleted.eq.false');
+    let { data: maya } = await window.supabaseClient.from('maya_items').select('cem').eq('company_name', companyId);
+
+    let totalRevenue = (sales || []).reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
+    let totalCost = (maya || []).reduce((sum, item) => sum + (parseFloat(item.cem) || 0), 0);
+    
+    let profit = totalRevenue - totalCost;
+    let display = document.getElementById('m-final-xeyir');
+    if(display) {
+        display.innerText = profit.toFixed(2);
+        display.parentElement.style.color = profit < 0 ? '#d63031' : '#2e7d32';
     }
+}
 
-    const textarea = document.getElementById('l');
-    const lineNumbers = document.getElementById('line-numbers');
-    textarea.addEventListener('scroll', () => { lineNumbers.scrollTop = textarea.scrollTop; });
+async function toggleDbList() {
+    let panel = document.getElementById('db-panel');
+    panel.style.display = (panel.style.display === "none") ? "block" : "none";
+    if (panel.style.display === "block") await renderDbList();
+}
 
-    function updateNumbersS(el) {
-        let html = "";
-        el.value.split('\n').forEach((_, i) => html += (i + 1) + ".<br>");
-        let div = document.getElementById('s-line-numbers');
-        div.innerHTML = html;
-        div.scrollTop = el.scrollTop;
-    }
+function editProduct(ad, qiymet, kat) {
+    document.getElementById('db-ad').value = ad;
+    document.getElementById('db-kat').value = kat;
+    document.getElementById('db-qiymet').value = qiymet;
+    isEditing = ad.toLowerCase();
+    document.getElementById('save-btn').innerText = "YENİLƏ";
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
 
-    function updateNumbers(el) {
-        let html = "";
-        el.value.split('\n').forEach((_, i) => html += (i + 1) + ".<br>");
-        let div = document.getElementById('line-numbers');
-        div.innerHTML = html;
-        div.scrollTop = el.scrollTop;
-        checkSum();
-    }
+async function deleteFromDb(ad) {
+    let { error } = await window.supabaseClient.from('product_db').delete().ilike('ad', ad);
+    if (error) return alert("Silinmə zamanı xəta: " + error.message);
+    await renderDbList();
+}
 
-    /*function calculateProfit() {
-        let sales = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        let maya = JSON.parse(localStorage.getItem(getStorageKey('maya_items')) || "[]");
-        let totalRevenue = sales.reduce((sum, item) => sum + (item.total || 0), 0);
-        let totalCost = maya.reduce((sum, item) => sum + (parseFloat(item.cem) || 0), 0);
-        let profit = totalRevenue - totalCost;
-        let display = document.getElementById('m-final-xeyir');
-        if(display) {
-            display.innerText = profit.toFixed(2);
-            display.parentElement.style.color = profit < 0 ? '#d63031' : '#2e7d32';
-        }
-        localStorage.setItem(getStorageKey('xeyir_deyeri'), profit.toFixed(2));
-    }
-
-    function toggleDbList() {
-        let panel = document.getElementById('db-panel');
-        panel.style.display = (panel.style.display === "none") ? "block" : "none";
-        if (panel.style.display === "block") renderDbList();
-    }
-
-    function editProduct(ad, qiymet, kat) {
-        document.getElementById('db-ad').value = ad;
-        document.getElementById('db-kat').value = kat;
-        document.getElementById('db-qiymet').value = qiymet;
-        isEditing = ad.toLowerCase();
-        document.getElementById('save-btn').innerText = "YENİLƏ";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function deleteFromDb(ad) {
-        let db = JSON.parse(localStorage.getItem('maya_db') || "{}");
-        delete db[ad.toLowerCase()];
-        localStorage.setItem('maya_db', JSON.stringify(db));
-        renderDbList();
-    }
-
-    function renderDbList() {
-        let db = JSON.parse(localStorage.getItem('maya_db') || "{}");
-        let listDiv = document.getElementById('db-list');
-        let html = "<hr><b>Bazadakı Məhsullar:</b>";
-        Object.keys(db).sort().forEach(ad => {
-            let item = db[ad];
-            html += `<div class="item-row">
-                <div onclick="editProduct('${ad}', '${item.qiymet}', '${item.kat}')" style="cursor:pointer; flex:1;">
-                    <span style="font-weight:bold; text-transform:capitalize;">${ad}</span><br>
-                    <small style="color:var(--a); font-weight:bold;">${item.kat}</small>
-                </div>
-                <span style="font-weight:bold; color:var(--s); margin-right:10px;">${item.qiymet} ₼</span>
-                <button onclick="deleteFromDb('${ad}')" style="background:#ff7675; border:none; color:white; padding:4px 8px; border-radius:4px;">Sil</button>
-            </div>`;
-        });
-        listDiv.innerHTML = html;
-    }
-
-    function saveToDb() {
-        let ad = document.getElementById('db-ad').value.trim();
-        let kat = document.getElementById('db-kat').value;
-        let qiymet = document.getElementById('db-qiymet').value;
-        if(!ad || !qiymet) return alert("Məlumatları daxil edin!");
-        let db = JSON.parse(localStorage.getItem('maya_db') || "{}");
-        if(isEditing && isEditing !== ad.toLowerCase()) delete db[isEditing];
-        db[ad.toLowerCase()] = { qiymet: qiymet, kat: kat };
-        localStorage.setItem('maya_db', JSON.stringify(db));
-        isEditing = false;
-        document.getElementById('save-btn').innerText = "YADDAŞA AL";
-        document.getElementById('db-ad').value = '';
-        document.getElementById('db-qiymet').value = '';
-        renderDbList();
-    }
-
-    function findPrice() {
-        let ad = document.getElementById('m-ad').value.trim().toLowerCase();
-        let db = JSON.parse(localStorage.getItem('maya_db') || "{}");
-        if (db[ad]) {
-            document.getElementById('m-qiymet').value = db[ad].qiymet;
-            document.getElementById('m-kat').value = db[ad].kat;
-        }
-    }
-
-    function checkSum() {
-        let numbers = document.getElementById('s').value.split(/[\s\n]+/);
-        let totalCount = numbers.reduce((sum, n) => sum + (parseInt(n) || 0), 0);
-        if (totalCount > 0) {
-            document.getElementById('e').value = totalCount;
-            sv();
-        }
-    }
-
-    function addMaya() {
-        let kat = document.getElementById('m-kat').value;
-        let ad = document.getElementById('m-ad').value;
-        let say = parseFloat(document.getElementById('m-say').value) || 0;
-        let qiymet = parseFloat(document.getElementById('m-qiymet').value) || 0;
-        if(!ad || say === 0 || qiymet === 0) return alert("Bütün sahələri doldurun!");
-        let cem = say * qiymet;
-        mayaItems.push({ kat, ad, say, qiymet, cem });
-        document.getElementById('m-ad').value = '';
-        document.getElementById('m-say').value = '';
-        document.getElementById('m-qiymet').value = '';
-        renderMayaTable();
-        localStorage.setItem(getStorageKey('maya_items'), JSON.stringify(mayaItems));
-        calculateProfit();
-    }
-
-    function renderMayaTable() {
-        let body = document.getElementById('mayaBody');
-        let total = 0;
-        body.innerHTML = "";
-        mayaItems.forEach((item, index) => {
-            total += item.cem;
-            body.innerHTML += `<tr><td>${item.kat}</td><td>${item.ad}</td><td>${item.say}</td><td>${item.qiymet.toFixed(2)}</td><td>${item.cem.toFixed(2)}</td><td><button onclick="delMaya(${index})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px;">X</button></td></tr>`;
-        });
-        document.getElementById('m-final-total').innerText = total.toFixed(2);
-    }
-
-    function delMaya(index) {
-        mayaItems.splice(index, 1);
-        localStorage.setItem(getStorageKey('maya_items'), JSON.stringify(mayaItems));
-        renderMayaTable();
-        calculateProfit();
-    }
-*/
-        // Şirkət ID-sini Supabase-dən və ya qlobal dəyişəndən alan köməkçi funksiya
-        function getCurrentCompany() {
-        return typeof currentCompany !== 'undefined' ? currentCompany : 'default';
-    }
-
-
-    // 1. Xalis Xeyir Hesablanması (Supabase-dən)
-        async function calculateProfit() {
-        let companyId = getCurrentCompany();
-        
-        let { data: sales } = await window.supabaseClient
-            .from('sales_history')
-            .select('total')
-            .eq('company_name', companyId); // Burada company_name olaraq dəyişdi
-
-        let { data: maya } = await window.supabaseClient
-            .from('maya_items')
-            .select('cem')
-            .eq('company_name', companyId);
-
-        let totalRevenue = (sales || []).reduce((sum, item) => sum + (parseFloat(item.total) || 0), 0);
-        let totalCost = (maya || []).reduce((sum, item) => sum + (parseFloat(item.cem) || 0), 0);
-        
-        let profit = totalRevenue - totalCost;
-        let display = document.getElementById('m-final-xeyir');
-        if(display) {
-            display.innerText = profit.toFixed(2);
-            display.parentElement.style.color = profit < 0 ? '#d63031' : '#2e7d32';
-        }
-    }
-
-
-    // 2. Bazanın panelini açıb-bağlamaq
-    async function toggleDbList() {
-        let panel = document.getElementById('db-panel');
-        panel.style.display = (panel.style.display === "none") ? "block" : "none";
-        if (panel.style.display === "block") await renderDbList();
-    }
-
-    // 3. Məhsulu redaktə üçün inputlara doldurmaq
-    function editProduct(ad, qiymet, kat) {
-        document.getElementById('db-ad').value = ad;
-        document.getElementById('db-kat').value = kat;
-        document.getElementById('db-qiymet').value = qiymet;
-        isEditing = ad.toLowerCase();
-        document.getElementById('save-btn').innerText = "YENİLƏ";
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    // 4. Məhsulu product_db-dən silmək
-    async function deleteFromDb(ad) {
-        let { error } = await window.supabaseClient
-            .from('product_db')
-            .delete()
-            .ilike('ad', ad);
-
-        if (error) {
-            alert("Silinmə zamanı xəta baş verdi: " + error.message);
-            return;
-        }
-        await renderDbList();
-    }
-
-    // 5. product_db siyahısını Supabase-dən oxuyub ekrana yazmaq
-    async function renderDbList() {
-        let { data: db, error } = await window.supabaseClient
-            .from('product_db')
-            .select('*')
-            .order('ad', { ascending: true });
-
-        let listDiv = document.getElementById('db-list');
-        let html = "<hr><b>Bazadakı Məhsullar:</b>";
-        
-        if (error || !db) {
-            listDiv.innerHTML = html + "<br><small>Məlumat yüklənmədi.</small>";
-            return;
-        }
-
-        db.forEach(item => {
-            html += `<div class="item-row">
-                <div onclick="editProduct('${item.ad}', '${item.qiymet}', '${item.kat}')" style="cursor:pointer; flex:1;">
-                    <span style="font-weight:bold; text-transform:capitalize;">${item.ad}</span><br>
-                    <small style="color:var(--a); font-weight:bold;">${item.kat}</small>
-                </div>
-                <span style="font-weight:bold; color:var(--s); margin-right:10px;">${item.qiymet} ₼</span>
-                <button onclick="deleteFromDb('${item.ad}')" style="background:#ff7675; border:none; color:white; padding:4px 8px; border-radius:4px;">Sil</button>
-            </div>`;
-        });
-        listDiv.innerHTML = html;
-    }
-
-    // 6. Məhsulu product_db-ə əlavə etmək və ya yeniləmək
-    async function saveToDb() {
-        let ad = document.getElementById('db-ad').value.trim();
-        let kat = document.getElementById('db-kat').value;
-        let qiymet = parseFloat(document.getElementById('db-qiymet').value);
-
-        if(!ad || isNaN(qiymet)) return alert("Məlumatları düzgün daxil edin!");
-
-        if (isEditing) {
-            await window.supabaseClient.from('product_db').delete().ilike('ad', isEditing);
-        }
-
-        let { error } = await window.supabaseClient
-            .from('product_db')
-            .insert([{ ad: ad, kat: kat, qiymet: qiymet }]);
-
-        if (error) {
-            alert("Yadda saxlama xətası: " + error.message);
-            return;
-        }
-
-        isEditing = false;
-        document.getElementById('save-btn').innerText = "YADDAŞA AL";
-        document.getElementById('db-ad').value = '';
-        document.getElementById('db-qiymet').value = '';
-        await renderDbList();
-    }
-
-    // 7. product_db-dən qiymət tapmaq
-    async function findPrice() {
-        let ad = document.getElementById('m-ad').value.trim();
-        if (!ad) return;
-
-        let { data, error } = await window.supabaseClient
-            .from('product_db')
-            .select('*')
-            .ilike('ad', ad)
-            .single();
-
-        if (data && !error) {
-            document.getElementById('m-qiymet').value = data.qiymet;
-            document.getElementById('m-kat').value = data.kat;
-        }
-    }
-
-    function checkSum() {
-        let numbers = document.getElementById('s').value.split(/[\s\n]+/);
-        let totalCount = numbers.reduce((sum, n) => sum + (parseInt(n) || 0), 0);
-        if (totalCount > 0) {
-            document.getElementById('e').value = totalCount;
-            sv();
-        }
-    }
-
-    // 8. Mayanı maya_items cədvəlinə əlavə etmək
-    async function addMaya() {
-        let kat = document.getElementById('m-kat').value;
-        let ad = document.getElementById('m-ad').value;
-        let say = parseFloat(document.getElementById('m-say').value) || 0;
-        let qiymet = parseFloat(document.getElementById('m-qiymet').value) || 0;
-        let companyId = getCurrentCompany();
-
-        if(!ad || say === 0 || qiymet === 0) return alert("Bütün sahələri doldurun!");
-        let cem = say * qiymet;
-
-        let { error } = await window.supabaseClient
-            .from('maya_items')
-            .insert([{ 
-                company_name: companyId, 
-                kat: kat, 
-                ad: ad, 
-                say: say, 
-                qiymet: qiymet, 
-                cem: cem 
-            }]);
-
-        if (error) {
-            alert("Maya əlavə edilərkən xəta: " + error.message);
-            return;
-        }
-
-        document.getElementById('m-ad').value = '';
-        document.getElementById('m-say').value = '';
-        document.getElementById('m-qiymet').value = '';
-
-        await loadAndRenderMayaTable();
-        await calculateProfit();
-    }
-
-    // 9. Mayaları maya_items cədvəlindən oxuyub cədvələ yığmaq
-  /*  async function loadAndRenderMayaTable() {
-    let body = document.getElementById('mayaBody');
-    let totalEl = document.getElementById('m-final-total');
-    if (!body) return;
-
-    body.innerHTML = `<tr><td colspan="6" style="text-align:center; opacity:0.6;">Yüklənir... 📦</td></tr>`;
-    let mayaItems = [];
-
-    // Satışlarda olduğu kimi birbaşa currentCompany ilə yoxlayırıq
-    if (window.supabaseClient && currentCompany) {
-        try {
-            let { data, error } = await window.supabaseClient
-                .from('maya_items')
-                .select('*')
-                .eq('company_name', currentCompany);
-
-            if (!error && data) {
-                mayaItems = data;
-            }
-        } catch (e) {
-            console.error("Maya məlumatları çəkilərkən xəta:", e);
-        }
-    }
-
-    let total = 0;
-    body.innerHTML = "";
-
-    if (!mayaItems.length) {
-        body.innerHTML = `<tr><td colspan="6" style="text-align:center; opacity:0.6;">Məlumat tapılmadı.</td></tr>`;
-        if (totalEl) totalEl.innerText = "0.00";
+async function renderDbList() {
+    let { data: db, error } = await window.supabaseClient.from('product_db').select('*').order('ad', { ascending: true });
+    let listDiv = document.getElementById('db-list');
+    let html = "<hr><b>Bazadakı Məhsullar:</b>";
+    
+    if (error || !db) {
+        listDiv.innerHTML = html + "<br><small>Məlumat yüklənmədi.</small>";
         return;
     }
 
-    mayaItems.forEach((item) => {
-        let cemValue = parseFloat(item.cem) || 0;
-        total += cemValue;
-        body.innerHTML += `<tr>
-            <td>${item.kat}</td>
-            <td>${item.ad}</td>
-            <td>${item.say}</td>
-            <td>${parseFloat(item.qiymet).toFixed(2)}</td>
-            <td>${cemValue.toFixed(2)}</td>
-            <td><button onclick="delMaya(${item.id})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px; cursor:pointer;">X</button></td>
-        </tr>`;
+    db.forEach(item => {
+        html += `<div class="item-row">
+            <div onclick="editProduct('${item.ad}', '${item.qiymet}', '${item.kat}')" style="cursor:pointer; flex:1;">
+                <span style="font-weight:bold; text-transform:capitalize;">${item.ad}</span><br>
+                <small style="color:var(--a); font-weight:bold;">${item.kat}</small>
+            </div>
+            <span style="font-weight:bold; color:var(--s); margin-right:10px;">${item.qiymet} ₼</span>
+            <button onclick="deleteFromDb('${item.ad}')" style="background:#ff7675; border:none; color:white; padding:4px 8px; border-radius:4px;">Sil</button>
+        </div>`;
     });
-
-    if (totalEl) totalEl.innerText = total.toFixed(2);
+    listDiv.innerHTML = html;
 }
 
+async function saveToDb() {
+    let ad = document.getElementById('db-ad').value.trim();
+    let kat = document.getElementById('db-kat').value;
+    let qiymet = parseFloat(document.getElementById('db-qiymet').value);
 
-    // 10. Mayanı maya_items cədvəlindən silmək
-    async function delMaya(id) {
-        let { error } = await window.supabaseClient
-            .from('maya_items')
-            .delete()
-            .eq('id', id);
+    if(!ad || isNaN(qiymet)) return alert("Məlumatları düzgün daxil edin!");
 
-        if (error) {
-            alert("Silinmə xətası: " + error.message);
-            return;
-        }
-
-        await loadAndRenderMayaTable();
-        await calculateProfit();
+    if (isEditing) {
+        await window.supabaseClient.from('product_db').delete().ilike('ad', isEditing);
     }
-*/
-   /* async function loadAndRenderMayaTable() {
-    // Digər funksiyalarınız kimi birbaşa currentCompany-ni götürürük
-    let companyId = currentCompany;
+
+    let { error } = await window.supabaseClient.from('product_db').insert([{ ad: ad, kat: kat, qiymet: qiymet }]);
+    if (error) return alert("Yadda saxlama xətası: " + error.message);
+
+    isEditing = false;
+    document.getElementById('save-btn').innerText = "YADDAŞA AL";
+    document.getElementById('db-ad').value = '';
+    document.getElementById('db-qiymet').value = '';
+    await renderDbList();
+}
+
+async function findPrice() {
+    let ad = document.getElementById('m-ad').value.trim();
+    if (!ad) return;
+
+    let { data } = await window.supabaseClient.from('product_db').select('*').ilike('ad', ad).single();
+    if (data) {
+        document.getElementById('m-qiymet').value = data.qiymet;
+        document.getElementById('m-kat').value = data.kat;
+    }
+}
+
+function checkSum() {
+    let numbers = document.getElementById('s').value.split(/[\s\n]+/);
+    let totalCount = numbers.reduce((sum, n) => sum + (parseInt(n) || 0), 0);
+    if (totalCount > 0) {
+        document.getElementById('e').value = totalCount;
+        sv();
+    }
+}
+
+async function addMaya() {
+    let kat = document.getElementById('m-kat').value;
+    let ad = document.getElementById('m-ad').value;
+    let say = parseFloat(document.getElementById('m-say').value) || 0;
+    let qiymet = parseFloat(document.getElementById('m-qiymet').value) || 0;
+    let companyId = getCurrentCompany();
+
+    if(!ad || say === 0 || qiymet === 0) return alert("Bütün sahələri doldurun!");
+    let cem = say * qiymet;
+
+    let { error } = await window.supabaseClient.from('maya_items').insert([{ 
+        company_name: companyId, kat: kat, ad: ad, say: say, qiymet: qiymet, cem: cem 
+    }]);
+
+    if (error) return alert("Maya əlavə edilərkən xəta: " + error.message);
+
+    document.getElementById('m-ad').value = '';
+    document.getElementById('m-say').value = '';
+    document.getElementById('m-qiymet').value = '';
+
+    await loadAndRenderMayaTable();
+    await calculateProfit();
+}
+
+async function loadAndRenderMayaTable() {
+    let companyId = getCurrentCompany();
+    let body = document.getElementById('mayaBody');
+    if (!body) return;
+    
+    body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Yüklənir...</td></tr>`;
 
     let { data: mayaItems, error } = await window.supabaseClient
         .from('maya_items')
         .select('*')
         .eq('company_name', companyId);
 
-    let body = document.getElementById('mayaBody');
     let total = 0;
     body.innerHTML = "";
 
-    if (error || !mayaItems) return;
+    if (error || !mayaItems || mayaItems.length === 0) {
+        body.innerHTML = `<tr><td colspan="6" style="text-align:center; color:#888;">Bu müəssisə üçün maya xərci yoxdur.</td></tr>`;
+        document.getElementById('m-final-total').innerText = "0.00";
+        return;
+    }
 
     mayaItems.forEach((item) => {
         let cemValue = parseFloat(item.cem) || 0;
@@ -1048,108 +723,51 @@ async function loadCompanyData() {
     document.getElementById('m-final-total').innerText = total.toFixed(2);
 }
 
-*/
-    async function loadAndRenderMayaTable() {
-        let companyId = getCurrentCompany();
+async function delMaya(id) {
+    let { error } = await window.supabaseClient.from('maya_items').delete().eq('id', id);
+    if (error) return alert("Silinmə xətası: " + error.message);
+    await loadAndRenderMayaTable();
+    await calculateProfit();
+}
 
-        let { data: mayaItems, error } = await window.supabaseClient
-            .from('maya_items')
-            .select('*')
-            .eq('company_name', companyId);
-
-        let body = document.getElementById('mayaBody');
-        let total = 0;
-        body.innerHTML = "";
-
-        if (error || !mayaItems) return;
-
-        mayaItems.forEach((item) => {
-            let cemValue = parseFloat(item.cem) || 0;
-            total += cemValue;
-            body.innerHTML += `<tr>
-                <td>${item.kat}</td>
-                <td>${item.ad}</td>
-                <td>${item.say}</td>
-                <td>${parseFloat(item.qiymet).toFixed(2)}</td>
-                <td>${cemValue.toFixed(2)}</td>
-                <td><button onclick="delMaya(${item.id})" style="background:var(--d); color:white; border:none; padding:2px 8px; border-radius:4px;">X</button></td>
-            </tr>`;
-        });
-        document.getElementById('m-final-total').innerText = total.toFixed(2);
-    }
 async function openCheckModal() {
     let checkContent = document.getElementById('checkContent');
     let checkModal = document.getElementById('checkModal');
-    
     if (!checkContent || !checkModal) return;
 
     checkContent.innerHTML = `<p style="text-align:center; color:#888; padding:20px;">Yüklənir...</p>`;
     checkModal.style.display = 'flex';
 
-    if (!window.supabaseClient) {
-        checkContent.innerHTML = `<p style="text-align:center; color:red;">Supabase bağlantısı yoxdur!</p>`;
-        return;
-    }
-
     try {
-        console.log("Axtarılan şirkət:", currentCompany);
-
-        // Cari yerli günün tarixini alırıq
         let now = new Date();
         let yyyy = now.getFullYear();
         let mm = String(now.getMonth() + 1).padStart(2, '0');
         let dd = String(now.getDate()).padStart(2, '0');
-        let isoToday = `${yyyy}-${mm}-${dd}`; // "2026-08-25"
-        let dotToday = `${dd}.${mm}.${yyyy}`; // "25.08.2026"
+        let isoToday = `${yyyy}-${mm}-${dd}`;
+        let dotToday = `${dd}.${mm}.${yyyy}`;
 
-        // ƏMƏLİYYAT SAYI ARTIRILDI: 100 əvəzinə 300 qoyuldu ki, ödənişlər arxada qalmasın
-        let { data: allItems, error } = await window.supabaseClient
+        let { data: allItems } = await window.supabaseClient
             .from('sales_history')
             .select('*')
             .eq('company_name', currentCompany)
             .order('id', { ascending: false })
             .limit(300);
 
-        if (error) {
-            console.error("Supabase xətası:", error);
-            checkContent.innerHTML = `<p style="text-align:center; color:red;">Məlumatlar yüklənərkən xəta baş verdi: ${error.message}</p>`;
-            return;
-        }
-
         allItems = allItems || [];
-        console.log("Bazadan gələn bütün sətirlər:", allItems);
-
-        // Gecə saatları daxil olmaqla bugünkü tarixi olan bütün əməliyyatları süzürük
         let validItems = allItems.filter(i => {
-            if (i.type === 'system_init') return false;
-            if (!i.date) return false;
-
+            if (i.type === 'system_init' || !i.date) return false;
             let dStr = String(i.date).trim();
-            if (dStr.includes(isoToday) || dStr.includes(dotToday) || dStr.startsWith(isoToday)) return true;
-
+            if (dStr.includes(isoToday) || dStr.includes(dotToday)) return true;
             try {
                 let dateObj = new Date(i.date);
                 if (isNaN(dateObj)) return false;
-
-                let localY = dateObj.getFullYear();
-                let localM = String(dateObj.getMonth() + 1).padStart(2, '0');
-                let localD = String(dateObj.getDate()).padStart(2, '0');
-                let itemLocalIso = `${localY}-${localM}-${localD}`;
-
+                let itemLocalIso = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
                 return itemLocalIso === isoToday;
-            } catch (err) {
-                return false;
-            }
+            } catch (err) { return false; }
         });
 
         let todaySales = validItems.filter(i => String(i.type || '').toLowerCase() === 'sale');
-
-        // Nəğd daxil olan pulu həm satışlardan, həm də ödənişlərdən hesablayırıq
-        let totalCash = validItems.reduce((sum, i) => {
-            let pVal = Number(i.paid) || 0;
-            return sum + Math.abs(pVal);
-        }, 0);
-
+        let totalCash = validItems.reduce((sum, i) => sum + Math.abs(Number(i.paid) || 0), 0);
         let totalCount = todaySales.reduce((sum, i) => sum + (parseInt(i.extra) || 0), 0);
         let totalSaleAmount = todaySales.reduce((sum, i) => sum + (Number(i.total) || 0), 0);
 
@@ -1163,195 +781,72 @@ async function openCheckModal() {
 
             validItems.forEach(i => {
                 let typeStr = String(i.type || '').toLowerCase();
-                let typeUpper = String(i.type || '').toUpperCase();
-
                 let isSale = typeStr === 'sale';
-                // Ödənişləri (BORC ÖDƏNİŞİ, payment və s.) qəti şəkildə tanıyır
-                let isPayment = typeStr.includes('payment') || typeStr.includes('odeme') || typeUpper.includes('BORC') || typeStr.includes('borc');
-                let isRefund = typeStr.includes('refund') || typeStr.includes('qaytar') || typeStr.includes('cixis');
-
-                let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : (isRefund ? 'var(--d)' : '#27ae60'));
-                let badgeText = isSale ? 'Satış' : (isPayment ? (i.type || 'Ödəniş') : (isRefund ? 'Qaytarılma' : (i.type || 'Əməliyyat')));
-                
-                let totalVal = Number(i.total) || 0;
-                let paidVal = Math.abs(Number(i.paid) || Number(i.total) || 0);
-                let amountText = isSale ? `${totalVal.toFixed(2)} ₼` : `${paidVal.toFixed(2)} ₼`;
-
-                let rawText = "";
-                if (i.raw) {
-                    if (Array.isArray(i.raw)) {
-                        rawText = i.raw.join(', ');
-                    } else if (typeof i.raw === 'string') {
-                        try {
-                            let parsed = JSON.parse(i.raw);
-                            rawText = Array.isArray(parsed) ? parsed.join(', ') : String(parsed);
-                        } catch (e) {
-                            rawText = i.raw;
-                        }
-                    } else {
-                        rawText = String(i.raw);
-                    }
-                }
-
-                let statsExtra = isSale && rawText ? ` | Çəkilər: ${rawText}` : (rawText && !isSale ? ` | Qeyd: ${rawText}` : '');
-                
-                // Tarixi təmiz yerli vaxt formatına çeviririk
-                let displayDate = i.date || 'Tarix yoxdur';
-                try {
-                    let dateObj = new Date(i.date);
-                    if (!isNaN(dateObj)) {
-                        let hours = String(dateObj.getHours()).padStart(2, '0');
-                        let minutes = String(dateObj.getMinutes()).padStart(2, '0');
-                        let seconds = String(dateObj.getSeconds()).padStart(2, '0');
-                        let day = String(dateObj.getDate()).padStart(2, '0');
-                        let month = String(dateObj.getMonth() + 1).padStart(2, '0');
-                        let year = dateObj.getFullYear();
-                        
-                        displayDate = `${day}.${month}.${year}, ${hours}:${minutes}:${seconds}`;
-                    }
-                } catch (err) {}
-
-                let subTextInfo = isSale ? `<span>Say: ${i.extra || 0}</span>` : `<span>${String(i.extra || '').toUpperCase()}</span>`;
+                let isPayment = typeStr.includes('payment') || typeStr.includes('odeme') || typeStr.includes('borc');
+                let badgeColor = isSale ? 'var(--a)' : (isPayment ? 'var(--s)' : 'var(--d)');
+                let amountText = isSale ? `${(Number(i.total) || 0).toFixed(2)} ₼` : `${Math.abs(Number(i.paid) || 0).toFixed(2)} ₼`;
 
                 listHtml += `<div style="background:#f8f9fa; padding:8px 10px; border-radius:6px; border-left:4px solid ${badgeColor}; font-size:12px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:2px;">
                         <b>${i.name || '-'}</b>
                         <span style="font-weight:bold; color:${badgeColor};">${amountText}</span>
                     </div>
-                    <div style="display:flex; justify-content:space-between; color:#666; font-size:11px;">
-                        <span>${displayDate} (${badgeText})</span>
-                        ${subTextInfo}
-                    </div>
-                    ${statsExtra ? `<div style="color:#444; font-size:10px; margin-top:3px; word-break:break-all;"><b>Statistika:</b>${statsExtra}</div>` : ''}
                 </div>`;
             });
             listHtml += `</div></div>`;
         }
 
         checkContent.innerHTML = `
-            <div class="r-row"><span>Satış sayı (Bugünkü):</span><b>${todaySales.length}</b></div>
+            <div class="r-row"><span>Satış sayı:</span><b>${todaySales.length}</b></div>
             <div class="r-row"><span>Ümumi say:</span><b>${totalCount}</b></div>
-            <div class="r-row"><span>Ümumi dövriyyə:</span><b>${totalSaleAmount.toFixed(2)} ₼</b></div>
+            <div class="r-row"><span>Dövriyyə:</span><b>${totalSaleAmount.toFixed(2)} ₼</b></div>
             <div class="r-row"><span>Nəğd daxil olan:</span><b>${totalCash.toFixed(2)} ₼</b></div>
             ${listHtml}
         `;
-
     } catch (e) {
-        console.error("openCheckModal xətası:", e);
-        checkContent.innerHTML = `<p style="text-align:center; color:red;">Gözlənilməz xəta baş verdi: ${e.message}</p>`;
+        checkContent.innerHTML = `<p style="text-align:center; color:red;">Xəta: ${e.message}</p>`;
     }
 }
 
-  
-// Bu funksiya hal hazırda yazılan satışları göstərmir
-    function closeCheckModal() { document.getElementById('checkModal').style.display = 'none'; }
+function closeCheckModal() { 
+    document.getElementById('checkModal').style.display = 'none'; 
+}
 
-    async function deleteSale(id) {
-    console.log("Silinmək istənən ID:", id); // ID gəlirmi yoxlayaq
-
-    if (!confirm("Bu satış zibil qutusu uzaqlasdırılsın?")) return;
-
-    if (!window.supabaseClient) {
-        console.error("Supabase client tapılmadı!");
-        return;
-    }
-
+async function deleteSale(id) {
+    if (!confirm("Bu satış zibil qutusuna atılsın?")) return;
     try {
-        let { data, error } = await window.supabaseClient
-            .from('sales_history')
-            .update({ is_deleted: true })
-            .eq('id', id)
-            .select(); // Görək bazadan nə qayıdır
-
-        console.log("Supabase cavabı (data):", data);
-        console.log("Supabase cavabı (error):", error);
-
-        if (error) {
-            alert("Supabase xətası: " + error.message);
-            return;
-        }
-
+        let { error } = await window.supabaseClient.from('sales_history').update({ is_deleted: true }).eq('id', id);
+        if (error) return alert("Xəta: " + error.message);
         alert("Uğurla zibil qutusuna atıldı!");
-
-        // Siyahını yenilə
-        if (typeof fetchSalesHistory === 'function') {
-            await fetchSalesHistory(); // Əgər bu funksiya async-dirsə, 'await' əlavə edin
-        }
-        
-        // Ekranı təzələyən funksiya
-        if (typeof ldSales === 'function') {
-            ldSales(); 
-        }
-        
-        if (typeof updateDash === 'function') {
-            updateDash();
-        }
-
+        ldSales();
+        updateDash();
     } catch (e) {
-        console.error("Gözlənilməz xəta:", e);
+        console.error(e);
     }
 }
-    
-    async function editSale(id) {
+
+async function editSale(id) {
     if (!confirm("Məlumatlar hesablama bölməsinə köçürülsün?")) return;
-
     try {
-        // 1. Supabase-dən həmin ID-yə uyğun məlumatı çəkirik
-        const { data: item, error } = await supabaseClient
-            .from('sales_history') // Cədvəl adınızı bura yazın (məsələn: 'sales' və ya 'satislar')
-            .select('*')
-            .eq('id', id)
-            .single();
-
-        if (error) throw error;
-
-        // 2. Məlumatları inputlara doldururuq (Sizin input ID-lərinizə uyğun)
+        const { data: item } = await window.supabaseClient.from('sales_history').select('*').eq('id', id).single();
         document.getElementById('n').value = item.name || '';
         document.getElementById('e').value = item.extra || '';
         document.getElementById('p').value = item.price || '';
-        
-        // Əgər 'raw' massiv və ya sətirdirsə:
-        if (Array.isArray(item.raw)) {
-            document.getElementById('l').value = item.raw.join('\n');
-        } else {
-            document.getElementById('l').value = item.raw || '';
-        }
-        
+        document.getElementById('l').value = Array.isArray(item.raw) ? item.raw.join('\n') : (item.raw || '');
         document.getElementById('paidInp').value = item.paid || '';
-
-        // 3. Əgər qeydi redaktə rejiminə keçirmək üçün ID-ni saxlamaq lazımdırsa (gizli input və ya qlobal dəyişən)
-        // Məsələn, yadda saxla düyməsi bilməlidir ki, bu yeni satışdır, yoxsa mövcud sətrin yenilənməsidir:
         window.currentEditId = id; 
-
-        // 4. Hesablama tabına keçid
         shTab('c', document.querySelectorAll('.tab')[1]);
-        
-        alert("Məlumatlar dolduruldu. Dəyişiklik edib yenidən yadda saxlayın.");
-
     } catch (error) {
-        console.error("Redaktə xətası:", error.message);
-        alert("Məlumatı yükləmək mümkün olmadı: " + error.message);
+        alert("Məlumatı yükləmək mümkün olmadı.");
     }
 }
+
 async function ldTrash() {
     const container = document.getElementById('trashTable');
     container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Yüklənir...</p>`;
 
-    if (!window.supabaseClient) {
-        container.innerHTML = `<p style="padding:20px; text-align:center; color:var(--d);">Supabase bağlantısı yoxdur.</p>`;
-        return;
-    }
-
     try {
-        // Supabase-dən yalnız cari müəssisəyə aid və silinmiş (is_deleted = true) qeydləri çəkirik
-        let { data: trash, error } = await window.supabaseClient
-            .from('sales_history')
-            .select('*')
-            .eq('company_name', currentCompany)
-            .eq('is_deleted', true)
-            .order('date', { ascending: false });
-
-        if (error) throw error;
+        let { data: trash } = await window.supabaseClient.from('sales_history').select('*').eq('company_name', currentCompany).eq('is_deleted', true).order('date', { ascending: false });
 
         if (!trash || !trash.length) {
             container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Zibil qutusu boşdur. 🗑️</p>`;
@@ -1359,246 +854,92 @@ async function ldTrash() {
         }
 
         let html = "";
-        trash.forEach((i, index) => {
+        trash.forEach((i) => {
             let isSale = i.type === 'sale';
             let amount = isSale ? (i.total || 0) : Math.abs(i.paid || 0);
-            let color = isSale ? 'var(--a)' : 'var(--s)';
-            let typeName = isSale ? '📦 SATIŞ' : (i.type === 'refund' ? '⏪ QAYTARMA' : '💳 ÖDƏNİŞ');
-
-            // Raw məlumatının formatlanması (əgər string və ya array-dirsə)
-            let rawStr = '';
-            if (i.raw) {
-                if (Array.isArray(i.raw)) {
-                    rawStr = i.raw.join(' , ');
-                } else if (typeof i.raw === 'string') {
-                    rawStr = i.raw.split('\n').join(' , ');
-                }
-            }
-
             html += `
-            <div style="background: var(--card-bg, #fff); margin-bottom: 10px; border-radius: 12px; border-left: 5px solid ${color}; box-shadow: 0 2px 5px rgba(0,0,0,0.05); overflow: hidden; border: 1px solid #eee;">
-                <div onclick="toggleTrashDetail(${index})" style="padding: 12px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <small style="color: ${color}; font-weight: bold; font-size: 10px;">${typeName}</small>
-                        <div style="font-weight: bold; font-size: 15px;">${i.name || 'Adsız'}</div>
-                        <small style="opacity: 0.6;">${i.date ? new Date(i.date).toLocaleString() : ''}</small>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-weight: bold; color: var(--d); font-size: 16px;">${amount.toFixed(2)} ₼</div>
-                        <small style="font-size: 10px; color: var(--a);">Ətraflı gör 🔍</small>
-                    </div>
+            <div style="background: #fff; margin-bottom: 10px; border-radius: 12px; padding: 12px; border: 1px solid #eee; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <b>${i.name || 'Adsız'}</b><br><small>${amount.toFixed(2)} ₼</small>
                 </div>
-
-                <div id="trash-det-${index}" style="display: none; padding: 15px; background: #fafafa; border-top: 1px solid #eee; font-size: 13px; color: #333;">
-                    ${isSale ? `
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                            <div><b>Ümumi Çəki:</b> ${i.sum ? i.sum.toFixed(2) : 0} kq</div>
-                            <div><b>Faiz (1%):</b> ${i.fire ? i.fire.toFixed(2) : 0} kq</div>
-                            <div><b>Xalis Çəki:</b> ${i.net ? i.net.toFixed(3) : 0} kq</div>
-                            <div><b>Qiymət:</b> ${i.price ? i.price.toFixed(2) : 0} ₼</div>
-                            <div><b>Əlavə Say:</b> ${i.extra || 0}</div>
-                            <div><b>Ödənilib:</b> ${i.paid ? i.paid.toFixed(2) : 0} ₼</div>
-                        </div>
-                        ${rawStr ? `<div style="font-size:11px; color:#666; padding:8px; background:#fff; border-radius:5px; border:1px solid #eee;"><b>Çəkilər:</b> ${rawStr}</div>` : ''}
-                    ` : `
-                        <div style="background: #fff; padding: 10px; border-radius: 8px; border: 1px solid #eee;">
-                            <div style="margin-bottom: 5px;"><b>Əməliyyat Növü:</b> ${typeName}</div>
-                            <div style="margin-bottom: 5px;"><b>Məbləğ:</b> <span class="paid">${Math.abs(i.paid || 0).toFixed(2)} ₼</span></div>
-                            <div style="margin-bottom: 5px;"><b>Qeyd:</b> ${i.extra || 'Yoxdur'}</div>
-                        </div>
-                    `}
-                    
-                    <div style="display: flex; gap: 8px; margin-top: 15px;">
-                        <button onclick="restoreItem('${i.id}')" style="flex: 1; background: var(--s); padding: 10px; font-size: 11px; color: white; border-radius: 8px; border:none; cursor:pointer;">BƏRPA ET</button>
-                        <button onclick="finalDelete('${i.id}')" style="flex: 1; background: var(--d); padding: 10px; font-size: 11px; color: white; border-radius: 8px; border:none; cursor:pointer;">TAM SİL</button>
-                        <button onclick="toggleTrashDetail(${index})" style="flex: 1; background: #636e72; padding: 10px; font-size: 11px; color: white; border-radius: 8px; border:none; cursor:pointer;">BAĞLA</button>
-                    </div>
+                <div style="display: flex; gap: 5px;">
+                    <button onclick="restoreItem('${i.id}')" style="background: var(--s); padding: 5px 10px; font-size: 10px; border-radius:4px;">BƏRPA</button>
+                    <button onclick="finalDelete('${i.id}')" style="background: var(--d); padding: 5px 10px; font-size: 10px; border-radius:4px;">SİL</button>
                 </div>
             </div>`;
         });
-
         container.innerHTML = html;
-
     } catch (error) {
-        console.error("Zibil qutusu xətası:", error);
         container.innerHTML = `<p style="padding:20px; text-align:center; color:var(--d);">Məlumatları yükləmək mümkün olmadı.</p>`;
     }
 }
-    
 
-    function toggleTrashDetail(index) {
-        let el = document.getElementById(`trash-det-${index}`);
-        el.style.display = el.style.display === "none" ? "block" : "none";
-    }
-// Qeydi zibil qutusundan bərpa edib əsas siyahıya qaytarmaq
 async function restoreItem(id) {
-    try {
-        let { error } = await window.supabaseClient
-            .from('sales_history')
-            .update({ is_deleted: false })
-            .eq('id', id);
-
-        if (error) throw error;
-
-        alert("Qeyd uğurla bərpa edildi!");
-        ldTrash(); // Zibil qutusunu yenilə
-        
-        if (typeof fetchSalesHistory === 'function') fetchSalesHistory();
-        if (typeof updateDash === 'function') updateDash();
-
-    } catch (error) {
-        console.error("Bərpa xətası:", error);
-        alert("Bərpa etmək mümkün olmadı: " + error.message);
-    }
+    await window.supabaseClient.from('sales_history').update({ is_deleted: false }).eq('id', id);
+    ldTrash();
+    updateDash();
 }
 
-// Qeydi bazadan tamamilə silmək
 async function finalDelete(id) {
-    if (!confirm("Bu qeyd bazadan tamamilə silinəcək və geri qaytarılmayacaq. Əminsinizmi?")) return;
-
-    try {
-        let { error } = await window.supabaseClient
-            .from('sales_history')
-            .delete()
-            .eq('id', id);
-
-        if (error) throw error;
-
-        alert("Qeyd bazadan tamamilə silindi.");
-        ldTrash(); // Zibil qutusunu yenilə
-
-    } catch (error) {
-        console.error("Tam silmə xətası:", error);
-        alert("Silmək mümkün olmadı: " + error.message);
-    }
+    if (!confirm("Tamamilə silinsin?")) return;
+    await window.supabaseClient.from('sales_history').delete().eq('id', id);
+    ldTrash();
 }
-    
 
-    function emptyTrash() {
-        if(confirm("Zibil qutusu boşaldılsın?")) {
-            localStorage.removeItem(getStorageKey('trash_v7'));
-            ldTrash();
-        }
-    }
+function shTab(id, el) {
+    document.querySelectorAll('.content').forEach(c => c.style.display = "none");
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(id).style.display = "block";
+    el.classList.add('active');
+}
 
-    function shTab(id, el) {
-        document.querySelectorAll('.content').forEach(c => c.style.display = "none");
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        document.getElementById(id).style.display = "block";
-        el.classList.add('active');
-    }
+function sv() {
+    localStorage.setItem(getStorageKey('s_n'), document.getElementById('n').value);
+    localStorage.setItem(getStorageKey('s_e'), document.getElementById('e').value);
+    localStorage.setItem(getStorageKey('s_p'), document.getElementById('p').value);
+    localStorage.setItem(getStorageKey('s_l'), document.getElementById('l').value);
+}
 
-    function sv() {
-        localStorage.setItem(getStorageKey('s_n'), document.getElementById('n').value);
-        localStorage.setItem(getStorageKey('s_e'), document.getElementById('e').value);
-        localStorage.setItem(getStorageKey('s_p'), document.getElementById('p').value);
-        localStorage.setItem(getStorageKey('s_l'), document.getElementById('l').value);
-    }
-
-    window.onload = async () => {
+window.onload = async () => {
     initWelcomeScreen();
     document.getElementById('welcome-wrapper').style.display = 'flex';
     document.getElementById('main-card').style.display = 'none';
-
-    // Şirkət ID-si `currentCompany` daxilində hazır olan kimi hesablamaq üçün:
-  /*  if (typeof calculateProfit === 'function') {
-        await calculateProfit();
-    }*/
 };
 
+async function calc() {
+    let name = document.getElementById('n').value.trim();
+    let price = parseFloat(document.getElementById('p').value) || 0;
+    let extra = parseInt(document.getElementById('e').value) || 0;
+    let paid = parseFloat(document.getElementById('paidInp').value) || 0;
+    let weightsText = document.getElementById('l').value;
 
-
-    
-
-
-    async function calc() {
-    let nameInput = document.getElementById('n');
-    let priceInput = document.getElementById('p');
-    let extraInput = document.getElementById('e');
-    let paidInput = document.getElementById('paidInp');
-    let weightsTextarea = document.getElementById('l');
-
-    if (!nameInput || !weightsTextarea) {
-        console.error("Form elementləri tapılmadı!");
-        return;
-    }
-
-    let name = nameInput.value.trim();
-    let price = parseFloat(priceInput.value) || 0;
-    let extra = parseInt(extraInput.value) || 0;
-    let paid = parseFloat(paidInput.value) || 0;
-    let weightsText = weightsTextarea.value;
-
-    if(!name) return alert("Zəhmət olmasa alıcı adını daxil edin!");
-        if(!price) return alert("Zəhmət olmasa alıcı adını daxil edin!");
-         if(!extra) return alert("Zəhmət olmasa alıcı adını daxil edin!");
-        if(!weightsText) return alert("Zəhmət olmasa alıcı adını daxil edin!");
+    if(!name || !price || !weightsText) return alert("Zəhmət olmasa bütün sahələri doldurun!");
 
     let weights = weightsText.split('\n').map(w => parseFloat(w.trim())).filter(w => !isNaN(w));
     let totalWeight = weights.reduce((a, b) => a + b, 0);
-    
     let fire = totalWeight * 0.01;
     let netWeight = totalWeight - fire;
     let totalSum = netWeight * price;
     let debt = totalSum - paid;
     let currentDateStr = new Date().toLocaleString('sv-SE').replace('T', ' ');
 
-    let formattedWeights = weights.map((w, i) => `${i + 1}. ${w.toFixed(2)}`).join('<br>');
-
-    // Nəticə hissələrini yoxlayaraq doldururuq
-    let rTop = document.getElementById('r-top');
-    let rWeights = document.getElementById('r-weights');
-    let rBottom = document.getElementById('r-bottom');
-    let rTotal = document.getElementById('r-total');
-    let resDiv = document.getElementById('res');
-
-    if(rTop) rTop.innerHTML = `<div class="r-row"><span>Alıcı:</span><b>${name}</b></div><div class="r-row"><span>Tarix:</span><span>${currentDateStr}</span></div>`;
-    if(rWeights) rWeights.innerHTML = formattedWeights;
-    if(rBottom) rBottom.innerHTML = `
+    document.getElementById('r-top').innerHTML = `<div class="r-row"><span>Alıcı:</span><b>${name}</b></div><div class="r-row"><span>Tarix:</span><span>${currentDateStr}</span></div>`;
+    document.getElementById('r-weights').innerHTML = weights.map((w, i) => `${i + 1}. ${w.toFixed(2)}`).join('<br>');
+    document.getElementById('r-bottom').innerHTML = `
         <div class="r-row"><span>Ümumi Çəki:</span><span>${totalWeight.toFixed(2)} kq</span></div>
         <div class="r-row"><span>Faiz (1%):</span><span>-${fire.toFixed(2)} kq</span></div>
-        <div class="r-row"><span>Qiymət:</span><span>${price.toFixed(2)} ₼</span></div>
-        <div class="r-row"><span>Əlavə Say:</span><span>${extra}</span></div>
-        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
-        <div class="r-row"><b>Xalis:</b><b>${netWeight.toFixed(3)} kq</b></div>
-        <hr style="border:none; border-top:1px dashed #eee; margin:5px 0;">
+        <div class="r-row"><span>Xalis:</span><span>${netWeight.toFixed(3)} kq</span></div>
         <div class="r-row" style="color:var(--s);"><span>Ödənildi:</span><span>${paid.toFixed(2)} ₼</span></div>
         <div class="r-row" style="color:var(--d);"><span>Borc:</span><span>${debt.toFixed(2)} ₼</span></div>
     `;
-    if(rTotal) rTotal.innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
-    if(resDiv) resDiv.style.display = 'block';
+    document.getElementById('r-total').innerHTML = `CƏM: ${totalSum.toFixed(2)} ₼`;
+    document.getElementById('res').style.display = 'block';
     
-    // --- HESABLA-DAN SONRA DÜYMƏLƏRİ AÇIRIQ ---
-    let calcBtn = document.getElementById('calcBtn');
-    let resetBtn = document.getElementById('resetBtn');
-    let saveBtn = document.getElementById('saveBtn');
-    let newSaleBtn = document.getElementById('newSaleBtn');
-
-    if(calcBtn) calcBtn.style.display = 'none';      // Hesabla gizlənir
-    if(resetBtn) resetBtn.style.display = 'block';   // Yenidən hesabla görünür
-    if(saveBtn) saveBtn.style.display = 'block';     // Yadda saxla görünür
-    if(newSaleBtn) newSaleBtn.style.display = 'none'; // Yeni satış hələ gizli qalır
-}
-// Word funksiyası
-function word() {
-    if (!window.cur) return alert("Əvvəlcə məlumatı yadda saxlayın!");
-    let weightList = ""; 
-    window.cur.raw.forEach((w, i) => { weightList += `<p style="margin:0;">${i+1}) ${parseFloat(w).toFixed(2)} kq</p>`; });
-    const content = `<div style="font-family:Arial; width:350px; border:1px solid #ccc; padding:20px;"><h2 style="text-align:center;">SATIŞ QƏBZİ</h2><p><b>Alıcı:</b> ${window.cur.name}</p><p><b>Tarix:</b> ${window.cur.date}</p><hr>${weightList}<hr><h3>CƏM: ${window.cur.total.toFixed(2)} ₼</h3></div>`;
-    const blob = new Blob(['\ufeff', content], { type: 'application/msword' });
-    const link = document.createElement('a'); 
-    link.href = URL.createObjectURL(blob); 
-    link.download = `${window.cur.name}_qebz.doc`; 
-    link.click();
+    document.getElementById('calcBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = 'block';
+    document.getElementById('saveBtn').style.display = 'block';
 }
 
-
-// WhatsApp funksiyası
-function wa() {
-    if (!window.cur) return alert("Əvvəlcə məlumatı yadda saxlayın!");
-    let msg = `📄 *SATIŞ QƏBZİ*\n👤 *Alıcı:* ${window.cur.name}\n🔥 *CƏM:* ${window.cur.total.toFixed(2)} ₼`;
-    window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
-}
 async function saveData() {
     let name = document.getElementById('n').value.trim();
     let price = parseFloat(document.getElementById('p').value) || 0;
@@ -1614,379 +955,131 @@ async function saveData() {
     let debt = totalSum - paid;
 
     let saleData = { 
-        company_name: currentCompany, 
-        name: name, 
-        extra: extra,
-        sum: totalWeight,
-        fire: fire,
-        net: netWeight,
-        total: totalSum, 
-        price: price, 
-        paid: paid, 
-        debt: debt,
-        date: new Date().toISOString(),
-        raw: weightsText,
-        type: 'sale',
-        is_deleted: false
+        company_name: currentCompany, name, extra, sum: totalWeight, fire, net: netWeight, total: totalSum, price, paid, debt,
+        date: new Date().toISOString(), raw: weightsText, type: 'sale', is_deleted: false
     };
-    window.cur=saleData;
 
-    if(window.supabaseClient) {
-        try {
-            if (window.currentEditId) {
-                let { error } = await window.supabaseClient
-                    .from('sales_history')
-                    .update(saleData)
-                    .eq('id', window.currentEditId);
-
-                if (error) throw error;
-                window.currentEditId = null; 
-            } else {
-                let { error } = await window.supabaseClient
-                    .from('sales_history')
-                    .insert([saleData]);
-
-                if (error) throw error;
-            }
-        } catch(e) {
-            console.error("Supabase xətası:", e);
-            alert("Bazaya yazılarkən xəta baş verdi: " + e.message);
-            return;
+    try {
+        if (window.currentEditId) {
+            await window.supabaseClient.from('sales_history').update(saleData).eq('id', window.currentEditId);
+            window.currentEditId = null; 
+        } else {
+            await window.supabaseClient.from('sales_history').insert([saleData]);
         }
+    } catch(e) {
+        return alert("Xəta baş verdi: " + e.message);
     }
 
     alert("Məlumatlar uğurla yadda saxlanıldı!");
-// --- BURADA XALİS XEYİRİ DƏRHAL YENİLƏYİRİK ---
-   await new Promise(resolve => setTimeout(resolve, 300));
-
-    if (typeof calculateProfit === 'function') {
-        await calculateProfit();
-    }
-    let resetBtn = document.getElementById('resetBtn');
-    let saveBtn = document.getElementById('saveBtn');
-    let newSaleBtn = document.getElementById('newSaleBtn');
-
-    if(resetBtn) resetBtn.style.display = 'none';
-    if(saveBtn) saveBtn.style.display = 'none';
+    await calculateProfit();
     
-    // Yalnız Yeni Satış düyməsini açırıq
-    if(newSaleBtn) newSaleBtn.style.display = 'block';
-
-    if (typeof updateDash === 'function') {
-        updateDash();
-    }
-
-
-    
+    document.getElementById('resetBtn').style.display = 'none';
+    document.getElementById('saveBtn').style.display = 'none';
+    document.getElementById('newSaleBtn').style.display = 'block';
+    updateDash();
 }
-    function resetToEditMode() {
-    // 1. Əvvəlcə daxil edilmiş yeni dəyərlərə görə hesablamanı yenidən aparırıq
-    // (calc() funksiyasını çağırırıq ki, qəbzdəki rəqəmlər yenilənsin)
+
+function resetToEditMode() {
     calc();
-
-    // 2. Qəbzin açıq (görünən) vəziyyətdə olmasını təmin edirik
-    let resContainer = document.getElementById('res');
-    if (resContainer) resContainer.style.display = 'block';
-    
-    // 3. DÜYMƏLƏRİN VƏZİYYƏTİ: 
-    // "Hesabla" ASLA geri gəlmir. Yalnız "Yenidən hesabla" və "Yadda saxla" görünməyə davam edir.
-    let calcBtn = document.getElementById('calcBtn');
-    let resetBtn = document.getElementById('resetBtn');
-    let saveBtn = document.getElementById('saveBtn');
-    let newSaleBtn = document.getElementById('newSaleBtn');
-
-    if (calcBtn) calcBtn.style.display = 'none';      // Hesabla gizli qalır!
-    if (resetBtn) resetBtn.style.display = 'block';   // Yenidən hesabla görünür
-    if (saveBtn) saveBtn.style.display = 'block';     // Yadda saxla görünür
-    if (newSaleBtn) newSaleBtn.style.display = 'none'; // Yeni satış hələ gizlidir
+    document.getElementById('res').style.display = 'block';
+    document.getElementById('calcBtn').style.display = 'none';
+    document.getElementById('resetBtn').style.display = 'block';
+    document.getElementById('saveBtn').style.display = 'block';
 }
 
-
-   function clr() {
+function clr() {
     if (confirm("Yeni satışa başlamaq istədiyinizə əminsiniz?")) {
-        // LocalStorage təmizliyi
-        if (typeof getStorageKey === 'function') {
-            localStorage.removeItem(getStorageKey('s_n'));
-            localStorage.removeItem(getStorageKey('raw'));
-            localStorage.removeItem(getStorageKey('extra'));
-        } else {
-            localStorage.removeItem('s_n');
-            localStorage.removeItem('raw');
-            localStorage.removeItem('extra');
-        }
-
-        // Bütün input, select və textarea sahələrini təmizləyirik
-        let allFields = document.querySelectorAll('input, select, textarea');
-        allFields.forEach(field => {
-            if (field.type !== 'button' && field.type !== 'submit' && field.type !== 'reset') {
-                field.value = '';
-            }
+        document.querySelectorAll('input, select, textarea').forEach(f => {
+            if (f.type !== 'button') f.value = '';
         });
-
         window.currentEditId = null;
-        window.cur = null;
-
-        let resContainer = document.getElementById('res');
-        if (resContainer) resContainer.style.display = 'none';
-
-        // --- İLKİN VƏZİYYƏTƏ QAYTARIRIQ (Yalnız HESABLA qalır) ---
-        let calcBtn = document.getElementById('calcBtn');
-        let resetBtn = document.getElementById('resetBtn');
-        let saveBtn = document.getElementById('saveBtn');
-        let newSaleBtn = document.getElementById('newSaleBtn');
-
-        if (calcBtn) calcBtn.style.display = 'block';         // Yalnız HESABLA görünür
-        if (resetBtn) resetBtn.style.display = 'none';       // Yenidən hesabla gizlənir
-        if (saveBtn) saveBtn.style.display = 'none';         // Yadda saxla gizlənir
-        if (newSaleBtn) newSaleBtn.style.display = 'none';   // Yeni satış da GİZLƏNİR!
-
-        let firstInput = document.getElementById('n');
-        if (firstInput) firstInput.focus();
+        document.getElementById('res').style.display = 'none';
+        document.getElementById('calcBtn').style.display = 'block';
+        document.getElementById('resetBtn').style.display = 'none';
+        document.getElementById('saveBtn').style.display = 'none';
+        document.getElementById('newSaleBtn').style.display = 'none';
     }
 }
- async function ldSales() {
+
+async function ldSales() {
     let searchTerm = (document.getElementById('saleSearch') ? document.getElementById('saleSearch').value : "").toLowerCase();
     let container = document.getElementById('salesTable');
     if(!container) return;
     
-    container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Yüklənir... 📦</p>`;
-
+    container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
     let sales = [];
 
-    // 1. Supabase-dən məlumatları çəkirik
-    if (window.supabaseClient && currentCompany) {
-        try {
-            let { data, error } = await window.supabaseClient
-                .from('sales_history')
-                .select('*')
-                .eq('company_name', currentCompany)
-                .eq('type', 'sale')
-                .or('is_deleted.is.null,is_deleted.eq.false')
-                .order('id', { ascending: false });
-            
-            if (!error && data) {
-                sales = data.filter(i => (i.name || "").toLowerCase().includes(searchTerm));
-            }
-        } catch(e) {
-            console.error("Satışları çəkərkən xəta:", e);
-        }
-    }
-
-    // Əgər Supabase boşdursa və ya xəta verərsə, lokal yaddaşdan oxuyuruq
-    if (!sales.length) {
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        sales = h.map((item, index) => ({ ...item, originalIndex: index }))
-                 .filter(i => (!i.type || i.type === 'sale') && (i.name || "").toLowerCase().includes(searchTerm));
-    }
+    try {
+        let { data } = await window.supabaseClient
+            .from('sales_history')
+            .select('*')
+            .eq('company_name', currentCompany)
+            .eq('type', 'sale')
+            .or('is_deleted.is.null,is_deleted.eq.false')
+            .order('id', { ascending: false });
+        
+        if (data) sales = data.filter(i => (i.name || "").toLowerCase().includes(searchTerm));
+    } catch(e) {}
 
     if (!sales.length) {
-        container.innerHTML = `<p style="padding:20px; text-align:center; opacity:0.6;">Axtarışa uyğun satış tapılmadı. 📦</p>`;
+        container.innerHTML = `<p style="padding:20px; text-align:center;">Satış tapılmadı.</p>`;
         return;
     }
 
     let html = "";
     sales.forEach((i, index) => {
-        let rowId = i.id ? `'${i.id}'` : i.originalIndex;
-        let toggleId = i.id ? `sale-det-sb-${i.id}` : `sale-det-${i.originalIndex}`;
-        
-        let sumVal = parseFloat(i.sum || i.totalWeight) || 0;
-        let fireVal = parseFloat(i.fire) || 0;
-        let netVal = parseFloat(i.net) || 0;
-        let priceVal = parseFloat(i.price) || 0;
-        let paidVal = parseFloat(i.paid) || 0;
-        let debtVal = parseFloat(i.debt) || 0;
-        let totalVal = parseFloat(i.total || i.totalSum) || 0;
-        let extraVal = parseInt(i.extra) || 0;
-        
-        // Çəkilər massivinin analizi (Mətn və ya massiv kimi gələ bilər)
-        let rawList = [];
-        if (Array.isArray(i.raw)) {
-            rawList = i.raw;
-        } else if (typeof i.raw === 'string' && i.raw.trim().length > 0) {
-            rawList = i.raw.split('\n').map(w => w.trim()).filter(w => w.length > 0);
-        }
-
         html += `
-        <div style="background: #fff; margin-bottom: 12px; border-radius: 12px; border-left: 5px solid var(--a); box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee; overflow: hidden;">
-            <div onclick="toggleSaleDetail('${toggleId}')" style="padding: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 10px;">
-                    <div style="background: linear-gradient(135deg, #ff4d4d, #d32f2f); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-                        ${index + 1}
-                    </div>
-                    <div>
-                        <div style="font-weight: bold; font-size: 15px;">${i.name}</div>
-                        <small style="opacity: 0.6;">${i.date ? new Date(i.date).toLocaleString('az-AZ') : ''}</small>
-                    </div>
-                </div>
-                <div style="text-align: right;">
-                    <div style="font-weight: bold; color: var(--d); font-size: 16px;">${totalVal.toFixed(2)} ₼</div>
-                    <small style="font-size: 10px; color: var(--a);">Ətraflı gör</small>
-                </div>
+        <div style="background: #fff; margin-bottom: 12px; border-radius: 12px; padding: 15px; border: 1px solid #eee;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div><b>${i.name}</b><br><small>${new Date(i.date).toLocaleString('az-AZ')}</small></div>
+                <div style="text-align: right;"><b style="color:var(--d);">${(i.total || 0).toFixed(2)} ₼</b></div>
             </div>
-            
-            <div id="${toggleId}" style="display: none; padding: 15px; background: #f9f9f9; border-top: 1px solid #eee; font-size: 13px; color: #333;">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px;">
-                    <div><b>Ümumi Çəki:</b> ${sumVal.toFixed(2)} kq</div>
-                    <div><b>Faiz (1%):</b> ${fireVal.toFixed(2)} kq</div>
-                    <div><b>Xalis Çəki:</b> ${netVal.toFixed(3)} kq</div>
-                    <div><b>Qiymət:</b> ${priceVal.toFixed(2)} ₼</div>
-                    <div><b>Əlavə Say:</b> ${extraVal}</div>
-                    <div><b>Ödənildi:</b> <span class="paid" style="color:var(--s); font-weight:bold;">${paidVal.toFixed(2)} ₼</span></div>
-                </div>
-
-                <div style="text-align: center; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #eee; margin-bottom: 10px;">
-                    <div style="font-size: 11px; color: #888; margin-bottom: 2px;">BORC</div>
-                    <div class="${debtVal < 0 ? 'txt-credit' : 'txt-debt'}" style="font-size: 20px; font-weight: bold; color: ${debtVal < 0 ? 'var(--s)' : 'var(--d)'};">
-                        ${debtVal.toFixed(2)} ₼
-                    </div>
-                </div>
-                
-                ${rawList.length ? `
-                    <div style="font-size:12px; color:#444; padding:10px; background:#fff; border-radius:8px; border:1px solid #ddd;">
-                        <b style="display:block; margin-bottom:5px;">Çəkilər:</b>
-                        ${rawList.map((w, idx) => `<span style="display:inline-block; width:45%; margin-right:5%;">${idx + 1}. ${parseFloat(w).toFixed(2)} kq</span>`).join('')}
-                    </div>` : ''}
-                
-                <div style="display: flex; gap: 8px; margin-top: 15px;">
-                    <button onclick="editSale(${rowId})" style="flex: 1; background: var(--gold); color: #000; padding: 10px; font-size: 11px; border-radius: 8px; border:none; font-weight:bold; cursor:pointer;">DÜZƏLİŞ</button>
-                    <button onclick="deleteSale(${rowId})" style="flex: 1; background: var(--d); color: white; padding: 10px; font-size: 11px; border-radius: 8px; border:none; font-weight:bold; cursor:pointer;">SİL</button>
-                </div>
+            <div style="display: flex; gap: 8px; margin-top: 10px;">
+                <button onclick="editSale('${i.id}')" style="flex: 1; background: var(--gold); color: #000; padding: 8px; font-size: 11px;">DÜZƏLİŞ</button>
+                <button onclick="deleteSale('${i.id}')" style="flex: 1; background: var(--d); color: white; padding: 8px; font-size: 11px;">SİL</button>
             </div>
         </div>`;
     });
-
     container.innerHTML = html;
 }
 
-// Kartı kliklədikdə açıb-bağlamaq üçün köməkçi funksiya
-function toggleSaleDetail(id) {
-    let el = document.getElementById(id);
-    if(el) {
-        el.style.display = (el.style.display === 'none' || el.style.display === '') ? 'block' : 'none';
-    }
-}
-   async function ldPayments() {
+async function ldPayments() {
     let container = document.getElementById('paymentsTable');
     if (!container) return;
-
     container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
-
-    let payments = [];
-
-    // Supabase-dən ödəniş və pul qaytarma tarixçəsini çəkirik
-    if (window.supabaseClient && currentCompany) {
-        try {
-            let { data, error } = await window.supabaseClient
-                .from('sales_history')
-                .select('*')
-                .eq('company_name', currentCompany)
-                .in('type', ['payment', 'refund'])
-                .order('id', { ascending: false });
-
-            if (!error && data) {
-                payments = data;
-            }
-        } catch(e) {
-            console.error("Ödənişləri çəkərkən xəta:", e);
-        }
-    }
-
-    if (!payments.length) {
+    
+    let { data: payments } = await window.supabaseClient.from('sales_history').select('*').eq('company_name', currentCompany).in('type', ['payment', 'refund']);
+    
+    if (!payments || !payments.length) {
         container.innerHTML = `<p style="padding:20px; text-align:center;">Ödəniş yoxdur.</p>`;
         return;
     }
 
-    let html = `<table><tr><th>Alıcı / Tarix</th><th>Məbləğ</th><th>Növ</th><th>Əməl</th></tr>`;
-
+    let html = `<table><tr><th>Alıcı / Tarix</th><th>Məbləğ</th><th>Növ</th><th>Sil</th></tr>`;
     payments.forEach(i => {
-        let növ = i.type === 'refund' ? 'PUL QAYTARILDI' : 'Borc Silinməsi';
-        let paidVal = parseFloat(i.paid) || 0;
-        let isNegative = paidVal < 0;
-
         html += `<tr>
-            <td><b>${i.name || ''}</b><br><small>${i.date || ''}</small></td>
-            <td class="${isNegative ? 'txt-debt' : 'paid'}">${Math.abs(paidVal).toFixed(2)} ₼</td>
-            <td>${növ}</td>
-            <td style="text-align:center;">
-                <button onclick="deleteSale('${i.id}')" style="background: var(--d); padding: 5px 10px; font-size: 10px; width:auto; border-radius:4px; border:none; color:white; font-weight:bold; cursor:pointer;">SİL</button>
-            </td>
+            <td><b>${i.name}</b><br><small>${i.date}</small></td>
+            <td>${Math.abs(i.paid || 0).toFixed(2)} ₼</td>
+            <td>${i.type}</td>
+            <td><button onclick="deleteSale('${i.id}')" style="background: var(--d); padding: 3px 8px; font-size: 10px; color:white;">X</button></td>
         </tr>`;
     });
-
-    html += "</table>";
-
-    // Alt hissəyə təmizləmə düyməsinin əlavə olunması
-    let footer = `<button class="b-clr" style="width:100%; margin-top:20px; background:var(--d); color:white; padding:10px; border:none; border-radius:8px; font-weight:bold; cursor:pointer;" onclick="clrPaymentsH()">ÖDƏNİŞ TARİXÇƏSİNİ SİL</button>`;
-
-    container.innerHTML = html + footer;
+    container.innerHTML = html + "</table>";
 }
 
-// Bütün ödəniş tarixçəsini Supabase-dən silmək üçün köməkçi funksiya
-async function clrPaymentsH() {
-    if (confirm("Bütün ödəniş tarixçəsi silinsin?")) {
-        if (window.supabaseClient && currentCompany) {
-            try {
-                let { error } = await window.supabaseClient
-                    .from('sales_history')
-                    .delete()
-                    .eq('company_name', currentCompany)
-                    .in('type', ['payment', 'refund']);
-
-                if (!error) {
-                    await ldPayments();
-                    if (typeof ldB === 'function') await ldB();
-                    if (typeof updateDash === 'function') await updateDash();
-                } else {
-                    alert("Silinərkən xəta baş verdi!");
-                }
-            } catch(e) {
-                console.error("Tarixçə silinərkən xəta:", e);
-            }
-        }
-    }
-}
-   async function ldB() {
+async function ldB() {
     let container = document.getElementById('debtSummary');
     if(!container) return;
-
     container.innerHTML = `<p style="padding:20px; text-align:center;">Yüklənir...</p>`;
 
     let totals = {};
-    let loadedFromSupabase = false;
-
-    // Supabase-dən məlumatı çəkirik
-    if (window.supabaseClient && currentCompany) {
-        try {
-            let { data, error } = await window.supabaseClient
-                .from('sales_history')
-                .select('*')
-                .eq('company_name', currentCompany)
-             .or('is_deleted.is.null,is_deleted.eq.false');
-
-            if (!error && data) {
-                loadedFromSupabase = true;
-                data.forEach(item => {
-                    let rawName = (item.name || "").trim();
-                    if(!rawName) return;
-                    let n = rawName.toLowerCase();
-                    
-                    if(!totals[n]) totals[n] = { originalName: item.name, totalDebt: 0 };
-                    totals[n].totalDebt += (parseFloat(item.debt) || 0);
-                });
-            }
-        } catch(e) {
-            console.error("Borcları hesablayarkən xəta:", e);
-        }
-    }
-
-    // Şəbəkə xətası və ya Supabase olmasa, lokal yaddaşdan oxuyuruq
-    if (!loadedFromSupabase) {
-        let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-        h.forEach(item => {
+    let { data } = await window.supabaseClient.from('sales_history').select('*').eq('company_name', currentCompany).or('is_deleted.is.null,is_deleted.eq.false');
+    
+    if (data) {
+        data.forEach(item => {
             let rawName = (item.name || "").trim();
             if(!rawName) return;
             let n = rawName.toLowerCase();
-
             if(!totals[n]) totals[n] = { originalName: item.name, totalDebt: 0 };
             totals[n].totalDebt += (parseFloat(item.debt) || 0);
         });
@@ -1998,220 +1091,84 @@ async function clrPaymentsH() {
         let debtVal = Math.round(d.totalDebt * 100) / 100;
         if (debtVal !== 0) {
             let isCredit = debtVal < 0;
-            let safeName = d.originalName.replace(/'/g, "\\'");
-
-            let borderColor = isCredit ? 'var(--s)' : 'var(--d)';
-            
-            html += `<div class="debt-item" style="border-left-color: ${borderColor};">
+            html += `<div class="debt-item">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <b>${d.originalName}</b>
                     <span class="${isCredit ? 'txt-credit' : 'txt-debt'}">${Math.abs(debtVal).toFixed(2)} ₼</span>
                 </div>
                 <div style="display: flex; gap: 5px;">
                     <input type="number" id="pay_${key}" placeholder="Məbləğ" style="padding: 8px; flex: 1;">
-                    <button onclick="handleBalance('${key}', '${safeName}', ${isCredit})" style="background: ${isCredit ? 'var(--gold)' : 'var(--s)'}; color: #000; padding: 0 15px; flex: 1;">${isCredit ? 'QAYTAR' : 'ÖDƏ'}</button>
+                    <button onclick="handleBalance('${key}', '${d.originalName}', ${isCredit})" style="background: ${isCredit ? 'var(--gold)' : 'var(--s)'}; color: #000; padding: 0 15px; flex: 1;">${isCredit ? 'QAYTAR' : 'ÖDƏ'}</button>
                 </div>
             </div>`;
         }
     });
-
     container.innerHTML = html || "<p style='text-align:center; padding:20px;'>Aktiv borc yoxdur.</p>";
 }
 
-  async function handleBalance(key, originalName, isCredit) {
+async function handleBalance(key, originalName, isCredit) {
     let inputEl = document.getElementById('pay_' + key);
     let val = parseFloat(inputEl ? inputEl.value : 0);
-    
     if (isNaN(val) || val <= 0) return alert("Məbləğ daxil edin!");
 
-    let paid = isCredit ? -val : val;
-    let debt = isCredit ? val : -val;
-    let type = isCredit ? 'refund' : 'payment';
-    let extraText = isCredit ? "PUL QAYTARILDI" : "BORC ÖDƏNİŞİ";
-    let dateStr = new Date().toLocaleString('az-AZ');
-
     let paymentData = {
-        company_name: typeof currentCompany !== 'undefined' ? currentCompany : '',
+        company_name: currentCompany,
         name: originalName,
-        extra: extraText,
-        type: type,
-        sum: 0,
-        fire: 0,
-        net: 0,
-        total: 0,
-        price: 0,
-        paid: paid,
-        debt: debt,
-        date: dateStr,
+        extra: isCredit ? "PUL QAYTARILDI" : "BORC ÖDƏNİŞİ",
+        type: isCredit ? 'refund' : 'payment',
+        sum: 0, fire: 0, net: 0, total: 0, price: 0,
+        paid: isCredit ? -val : val,
+        debt: isCredit ? val : -val,
+        date: new Date().toLocaleString('az-AZ'),
         raw: []
     };
 
-    // Yalnız Supabase-ə yazılır
-    if (window.supabaseClient) {
-        try {
-            let { error } = await window.supabaseClient.from('sales_history').insert([paymentData]);
-            if (error) throw error;
-        } catch(e) {
-            console.error("Ödəniş Supabase xətası:", e);
-            return alert("Xəta baş verdi, ödəniş bazaya yazılamadı!");
-        }
-    } else {
-        return alert("Baza ilə əlaqə yoxdur!");
-    }
-
+    await window.supabaseClient.from('sales_history').insert([paymentData]);
     if (inputEl) inputEl.value = '';
-
-    await ldB();
-    if (typeof updateDash === 'function') await updateDash();
-
-    alert(type === 'refund' ? "Pul qaytarıldı." : "Ödəniş qeyd edildi.");
+    ldB();
+    updateDash();
+    alert("Əməliyyat uğurla qeyd edildi.");
 }
+
 async function updateDash() {
-    let todayIso = new Date().toISOString().split('T')[0];
-    let todayLocal = new Date().toLocaleDateString('az-AZ');
-
     let stats = { todaySale: 0, todayCash: 0, todayCount: 0, allSale: 0, allDebt: 0, allCount: 0 };
+    let now = new Date();
+    let isoToday = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    // 1. Əvvəlcə Lokal Yaddaşdan məlumatları hesabla
-    let h = JSON.parse(localStorage.getItem(getStorageKey('h_v7')) || "[]");
-    h.forEach(i => {
-        let isSale = !i.type || i.type === 'sale';
-        let totalVal = parseFloat(i.total || i.totalSum) || 0;
-        let paidVal = parseFloat(i.paid) || 0;
-        let debtVal = parseFloat(i.debt) || 0;
-        let countVal = parseInt(i.extra) || 0;
+    try {
+        let { data } = await window.supabaseClient.from('sales_history').select('*').eq('company_name', currentCompany).or('is_deleted.is.null,is_deleted.eq.false');
+        if (data) {
+            data.forEach(i => {
+                let isSale = (!i.type || i.type === 'sale');
+                let totalVal = parseFloat(i.total) || 0;
+                let paidVal = parseFloat(i.paid) || 0;
+                let debtVal = parseFloat(i.debt) || 0;
+                let countVal = parseInt(i.extra) || 0;
 
-        if (isSale) { 
-            stats.allSale += totalVal; 
-            stats.allCount += countVal; 
-        }
-        stats.allDebt += debtVal;
+                if (isSale) { 
+                    stats.allSale += totalVal; 
+                    stats.allCount += countVal; 
+                }
+                stats.allDebt += debtVal;
 
-        if (i.date && (i.date.includes(todayLocal) || i.date.startsWith(todayIso))) {
-            if (isSale) { 
-                stats.todaySale += totalVal; 
-                stats.todayCount += countVal; 
-            }
-            stats.todayCash += paidVal;
-        }
-    });
-
-    // İnterfeysi lokal məlumatlarla yenilə
-    renderDashStats(stats);
-
-    // 2. Supabase bazasından məlumatları canlı çək və paneli sinxronlaşdır
-    if (window.supabaseClient && currentCompany) {
-        try {
-            const { data, error } = await window.supabaseClient
-                 .from('sales_history')
-                        .select('*')
-                        .eq('company_name', currentCompany)
-             .or('is_deleted.is.null,is_deleted.eq.false');
-
-               
-
-            if (!error && data) {
-                let sbStats = { todaySale: 0, todayCash: 0, todayCount: 0, allSale: 0, allDebt: 0, allCount: 0 };
-
-                data.forEach(i => {
-                    let isSale = !i.type || i.type === 'sale';
-                    let totalVal = parseFloat(i.total) || 0;
-                    let paidVal = parseFloat(i.paid) || 0;
-                    let debtVal = parseFloat(i.debt) || 0;
-                    let countVal = parseInt(i.extra) || 0;
-
-                    if (isSale) { 
-                        sbStats.allSale += totalVal; 
-                        sbStats.allCount += countVal; 
+                if (i.date && String(i.date).includes(isoToday)) {
+                    if (isSale) {
+                        stats.todaySale += totalVal;
+                        stats.todayCount += countVal;
                     }
-                    sbStats.allDebt += debtVal;
-
-                    if (i.date && (i.date.startsWith(todayIso) || i.date.includes(todayLocal))) {
-                        if (isSale) { 
-                            sbStats.todaySale += totalVal; 
-                            sbStats.todayCount += countVal; 
-                        }
-                        sbStats.todayCash += paidVal;
-                    }
-                });
-
-                renderDashStats(sbStats);
-            }
-        } catch (e) {
-            console.error("Paneli yeniləyərkən Supabase xətası:", e);
+                    stats.todayCash += Math.abs(paidVal);
+                }
+            });
         }
-    }
-    if (typeof calculateProfit === 'function') {
-        await calculateProfit();
-    }
-} 
-   
+    } catch(e) {}
 
-function renderDashStats(s) {
-    if (document.getElementById('d-sale-t')) document.getElementById('d-sale-t').innerText = s.todaySale.toFixed(2) + " ₼";
-    if (document.getElementById('d-cash-t')) document.getElementById('d-cash-t').innerText = s.todayCash.toFixed(2) + " ₼";
-    if (document.getElementById('d-count-t')) document.getElementById('d-count-t').innerText = s.todayCount;
-    if (document.getElementById('d-sale-all')) document.getElementById('d-sale-all').innerText = s.allSale.toFixed(2) + " ₼";
-    if (document.getElementById('d-debt-all')) document.getElementById('d-debt-all').innerText = s.allDebt.toFixed(2) + " ₼";
-    if (document.getElementById('d-count-all')) document.getElementById('d-count-all').innerText = s.allCount;
+    document.getElementById('d-sale-t').innerText = stats.todaySale.toFixed(2) + ' ₼';
+    document.getElementById('d-cash-t').innerText = stats.todayCash.toFixed(2) + ' ₼';
+    document.getElementById('d-count-t').innerText = stats.todayCount;
+    document.getElementById('d-sale-all').innerText = stats.allSale.toFixed(2) + ' ₼';
+    document.getElementById('d-debt-all').innerText = stats.allDebt.toFixed(2) + ' ₼';
+    document.getElementById('d-count-all').innerText = stats.allCount;
 }
-/*function clr() {
-    if (confirm("Təmizlənsin?")) {
-        // 1. LocalStorage-də saxlanılan müvəqqəti məlumatları silirik
-        if (typeof getStorageKey === 'function') {
-            localStorage.removeItem(getStorageKey('s_n'));
-            localStorage.removeItem(getStorageKey('raw'));
-            localStorage.removeItem(getStorageKey('extra'));
-        } else {
-            localStorage.removeItem('s_n');
-            localStorage.removeItem('raw');
-            localStorage.removeItem('extra');
-        }
-
-        // 2. Ekranda olan BÜTÜN xanaları (text, number, hidden, select, textarea) təmizləyirik
-        let allFields = document.querySelectorAll('input, select, textarea');
-        allFields.forEach(field => {
-            if (field.type !== 'button' && field.type !== 'submit' && field.type !== 'reset') {
-                field.value = '';
-            }
-        });
-
-        // 3. Əgər çəkilər/saylar dinamik list (HTML tag/div/span) kimi ekranda görünürsə, onları da sıfırlayırıq
-        let dynamicTags = document.querySelectorAll('.weight-tag, .count-tag, #rawList, #weightsList, .raw-container, #extraList');
-        dynamicTags.forEach(tag => {
-            tag.innerHTML = '';
-        });
-
-        // 4. Kursoru ilk xanaya qaytarırıq
-        let firstInput = document.getElementById('s_n') || document.getElementById('customerName') || document.querySelector('input');
-        if (firstInput) firstInput.focus();
-    }
-} */
-
-async function clrH() { 
-    if(confirm("Tarixçə silinsin?")) { 
-        localStorage.removeItem(getStorageKey('h_v7')); 
-        
-        if (window.supabaseClient && currentCompany) {
-            await window.supabaseClient
-                .from('sales_history')
-                .delete()
-                .eq('company_name', currentCompany);
-        }
-        
-        if (typeof ldSales === 'function') ldSales(); 
-        updateDash(); 
-    } 
-}
-
-function toggleDark() {
-    document.body.classList.toggle('dark-mode');
-    localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
-}
-
-if (localStorage.getItem('darkMode') === 'true') {
-    document.body.classList.add('dark-mode');
-}
-  </script>
+</script>
 </body>
 </html>
