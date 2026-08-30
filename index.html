@@ -1,4 +1,4 @@
-Version-34<!DOCTYPE html>
+Version-35<!DOCTYPE html>
 <html lang="az">
 <head>
     <link rel="icon" href="data:,">
@@ -623,10 +623,15 @@ async function loadCompanyData() {
     await updateDash();
     let hSales = document.getElementById('h_sales');
     let hPayments = document.getElementById('h_payments');
+    let maya = document.getElementById('maya');
     let b = document.getElementById('b');
 
-    if (hSales && hSales.style.display === 'block') await ldSales();
+     if (hSales && hSales.style.display === 'block') await ldSales();
     if (hPayments && hPayments.style.display === 'block') await ldPayments();
+    if (maya && maya.style.display === 'block') {
+        await loadAndRenderMayaTable();
+        await calculateProfit();
+    }
     if (b && b.style.display === 'block') await ldB();
 }
 
